@@ -1,1 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SFF 2026: CGC session agenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   Dashboard theme (locked). Extracted from the approved
+   "Process Automation" dashboard, Oct 2026.
+   Do not edit per dashboard. Change here = change everywhere.
+   ========================================================== */
+:root{
+  --bg:#FFFFFF; --ink:#0C0C0C; --ink2:#3F5661; --muted:#758D99; --grid:#D7DFE3; --axis:#0C0C0C;
+  --red:#E3120B; --red2:#F4928C; --blue:#006BA2; --teal:#379A8B; --context:#B7C4CB; --blue2:#8FC3E3; --hover:#F2F5F6;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121619; --ink:#EEF2F4; --ink2:#B5C3CA; --muted:#8FA3AD; --grid:#2E383E; --axis:#EEF2F4;
+    --red:#FF4D45; --red2:#B8554F; --blue:#3A9BD8; --teal:#4FB8A7; --context:#56656D; --blue2:#2E6A8E; --hover:#1B2226; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121619; --ink:#EEF2F4; --ink2:#B5C3CA; --muted:#8FA3AD; --grid:#2E383E; --axis:#EEF2F4;
+  --red:#FF4D45; --red2:#B8554F; --blue:#3A9BD8; --teal:#4FB8A7; --context:#56656D; --blue2:#2E6A8E; --hover:#1B2226; color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter Tight","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:36px 24px 48px}
+.tag{display:block;width:44px;height:7px;background:var(--red);margin-bottom:12px;transform-origin:left}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+header h1{font-size:clamp(26px,3.4vw,38px);line-height:1.12;font-weight:700;margin:0 0 8px;max-width:32ch;letter-spacing:-0.01em}
+.dek{font-size:17px;color:var(--ink2);margin:0;max-width:70ch}
+.replay{font:inherit;font-size:13px;font-weight:600;background:none;color:var(--ink);border:1px solid var(--ink);padding:7px 12px;cursor:pointer}
+.replay:hover{background:var(--hover)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin:32px 0 52px}
+.kpi{border-top:2px solid var(--ink);padding-top:10px}
+.kpi .v{font-size:38px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:18px;font-weight:600;color:var(--ink2)}
+.kpi.alert .v{color:var(--red)}
+.kpi .l{font-size:14.5px;font-weight:600;margin-top:4px}
+.kpi .c{font-size:13px;color:var(--ink2);margin-top:3px;line-height:1.35}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 44px}
+.card{min-width:0}
+.card .tag{width:32px;height:6px;margin-bottom:10px}
+.card.wide{grid-column:1/-1}
+.card h2{font-size:20px;line-height:1.2;font-weight:700;margin:0 0 4px;max-width:60ch}
+.card .sub{font-size:14px;margin:0 0 12px;line-height:1.35}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:0 0 8px}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;display:inline-block}
+.chart{width:100%;min-height:120px}
+.chart svg{display:block;overflow:visible}
+.foot{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.45}
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px;align-items:center}
+.chip{font:inherit;font-size:12.5px;font-weight:500;background:none;color:var(--ink);border:1px solid var(--context);padding:5px 10px;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .n{color:inherit;opacity:.65;margin-left:4px;font-variant-numeric:tabular-nums}
+.grid-c{stroke:var(--grid);stroke-width:1}
+.axis-c{stroke:var(--axis);stroke-width:1}
+.tick{fill:var(--ink2);font-size:12px;font-variant-numeric:tabular-nums}
+.tick.yr{font-weight:700;fill:var(--ink)}
+.label{fill:var(--ink);font-size:13px}
+.label.sm{font-size:12.5px}
+.note{font-size:12px;font-weight:600}
+.halo{paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.ann{fill:var(--ink2);font-size:11.5px}
+.row-hit{fill:transparent}
+.row:hover .row-hit{fill:var(--hover)}
+/* milestones */
+.ms{list-style:none;margin:0;padding:0;position:relative}
+.ms::before{content:"";position:absolute;left:61px;top:6px;bottom:6px;width:2px;background:var(--grid);transform-origin:top;transform:scaleY(var(--line,1));transition:transform 1.1s cubic-bezier(.2,.7,.2,1)}
+.ms .wk{font-size:12px;font-weight:700;color:var(--ink2);padding:10px 0 4px 78px}
+.ms .wk:first-child{padding-top:0}
+.ms .it{display:grid;grid-template-columns:50px 24px 1fr;align-items:start;padding:5px 0;column-gap:0}
+.ms .dt{font-size:13px;font-weight:700;text-align:right;padding-right:8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ms .dot{width:12px;height:12px;border-radius:50%;margin:3px 0 0 6px;background:var(--blue);border:2px solid var(--bg);box-sizing:content-box;position:relative;z-index:1}
+.ms .dot.live{background:var(--teal)}
+.ms .ev{font-size:13.5px;line-height:1.35}
+.ms .ev span{display:block;color:var(--ink2);font-size:12.5px}
+/* reveal animations for HTML blocks */
+.reveal .rv{opacity:0;transform:translateY(8px)}
+.reveal.in .rv{opacity:1;transform:none;transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i,0) * 60ms)}
+.reveal .ms{--line:0}
+.reveal.in .ms{--line:1}
+.reveal .ms .dot{transform:scale(0)}
+.reveal.in .ms .dot{transform:scale(1);transition:transform .45s cubic-bezier(.3,1.6,.5,1);transition-delay:calc(var(--i,0) * 60ms + 150ms)}
+/* tables */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;font-weight:600;color:var(--ink2);font-size:12.5px;padding:8px 10px;border-bottom:1px solid var(--ink);white-space:nowrap;vertical-align:bottom}
+td{padding:9px 10px;border-bottom:1px solid var(--grid);vertical-align:top;line-height:1.4}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.name{font-weight:600}
+tr.fade{animation:rowin .45s ease both;animation-delay:calc(var(--i,0) * 18ms)}
+@keyframes rowin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stage{font-weight:600;white-space:nowrap;border-left:3px solid var(--blue);padding-left:6px}
+.stage.live{border-color:var(--teal)} .stage.review{border-color:var(--context)}
+details{margin-top:4px}
+summary{cursor:pointer;color:var(--blue);font-size:12.5px;font-weight:600}
+details p{white-space:pre-line;font-size:12.5px;color:var(--ink2);margin:6px 0 0;max-width:75ch}
+#tip{position:fixed;pointer-events:none;background:var(--bg);color:var(--ink);border:1px solid var(--ink);padding:8px 10px;font-size:13px;line-height:1.4;max-width:280px;z-index:10;white-space:normal}
+@media (max-width:860px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.wrap{padding:24px 16px 40px}.kpi .v{font-size:30px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+.hdr{fill:var(--ink2);font-size:12px;font-weight:700}
+.ink{fill:var(--ink)}
+
+/* ==========================================================
+   Hub additions. Built only from the theme tokens above.
+   ========================================================== */
+[hidden]{display:none!important}
+.hubside{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.mark{font-weight:700;font-size:15px;letter-spacing:.04em;color:var(--ink2)}
+#logo{height:56px;width:56px;display:block}
+.syncst{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2)}
+.syncst i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.syncst.live i{background:var(--teal)} .syncst.err i{background:var(--red)}
+.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:12px 0;margin:26px 0 36px;border-bottom:1px solid var(--grid);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs .chip{white-space:nowrap;font-size:13.5px;padding:7px 12px}
+.view{display:none}.view.active{display:block}
+.vhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 16px}
+.vhead .tag{width:32px;height:6px;margin-bottom:10px}
+.vhead h2{font-size:24px;line-height:1.2;font-weight:700;margin:0 0 4px}
+.vhead .sub{margin:0;font-size:14px;color:var(--ink2);line-height:1.4}
+.btn{font:inherit;font-size:13px;font-weight:600;padding:8px 13px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{opacity:.86}
+.btn.sec{background:none;color:var(--ink)}
+.btn.sec:hover{background:var(--hover);opacity:1}
+.btn.ok{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.warn{background:none;color:var(--red);border-color:var(--red)}
+.btn.sm{font-size:12.5px;padding:5px 10px}
+.btn:focus-visible,.link:focus-visible,select:focus-visible,textarea:focus-visible,.search:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.search,.sel{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--context);background:var(--bg);color:var(--ink)}
+.search{min-width:220px;flex:1;max-width:340px}
+.controls .grow{flex:1}
+.who{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.who i{width:10px;height:10px;display:inline-block;flex:none}
+.meta{font-size:12.5px;color:var(--ink2);line-height:1.4}
+.hi{color:var(--red);font-weight:600}
+.clash{color:var(--red);font-weight:600;font-size:12px}
+.empty{font-size:13.5px;color:var(--muted);padding:14px 0}
+.link{background:none;border:0;padding:0;font:inherit;font-size:12.5px;font-weight:600;color:var(--blue);cursor:pointer}
+.link.del{color:var(--muted)}
+.links{display:flex;gap:16px;margin-top:8px}
+/* agenda rows */
+/* agenda lanes: same pattern as the approved pipeline chart */
+.akey{margin:4px 0 10px}
+#sessionList{overflow-x:clip}
+.aday{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding:22px 0 8px;font-size:16px;font-weight:700}
+.aday:first-child{padding-top:4px}
+.aday span{font-size:13px;font-weight:600;color:var(--ink2)}
+.lane{display:grid;grid-template-columns:96px 28px minmax(0,1fr);gap:0 10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--grid)}
+.lane .lt{font-size:13px;font-weight:600;padding-top:7px;font-variant-numeric:tabular-nums}
+.lane .ln{font-size:12px;font-weight:700;color:var(--ink2);text-align:right;padding-top:8px;font-variant-numeric:tabular-nums}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.sp{flex:1 1 300px;min-width:0;padding:9px 12px 10px;border-radius:2px;color:#fff;display:flex;flex-direction:column;gap:3px}
+.sp.ink{color:var(--bg)}
+.sp h3{font-size:14px;font-weight:600;line-height:1.3;margin:0}
+.sp .m{font-size:12px;font-weight:600;opacity:.85}
+.sp .f{font-size:12.5px;line-height:1.4;opacity:.9}
+.sp .ov{align-self:flex-start;background:var(--bg);color:var(--red);font-size:11.5px;font-weight:700;padding:1px 6px;margin-top:2px}
+.sp .sa{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.sp .sa button{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;background:transparent;color:inherit;border:1px solid currentColor;cursor:pointer;opacity:.92}
+.sp .sa button:hover{background:rgba(255,255,255,.16);opacity:1}
+.sp .sa .sdel{margin-left:auto;border-color:transparent;text-decoration:underline;text-underline-offset:2px}
+.sp .sa .sdel:hover{border-color:currentColor;text-decoration:none}
+.sp .sa button[aria-pressed="true"]{background:var(--bg);color:var(--ink);border-color:var(--bg)}
+.sp.done{background:var(--context)!important;color:var(--ink)}
+.sp.done .sa button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pillsin .sp{animation:pillin .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 22ms)}
+@keyframes pillin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mini{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:baseline}
+.mini .t{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.mini .s{color:var(--ink2);font-size:12.5px}
+.mini.done{color:var(--muted)}
+/* dashboard */
+.dash-grid{margin-top:8px}
+.team{display:grid;grid-template-columns:1fr;gap:18px;margin-top:6px}
+.dev{border-top:2px solid var(--ink);padding-top:8px}
+.dev h3{margin:0;font-size:17px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dev h3 b{font-size:26px;font-variant-numeric:tabular-nums}
+.dev h3 b small{font-size:13px;font-weight:600;color:var(--ink2);margin-left:4px}
+.dev .role{font-size:12.5px;font-weight:600;color:var(--blue);margin:2px 0 6px}
+.dev ul{margin:0;padding:0;list-style:none;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.hbar{transform-box:fill-box;transform-origin:left center;transition:transform .75s cubic-bezier(.4,0,.2,1)}
+/* dialog */
+dialog{border:1px solid var(--ink);padding:0;width:min(600px,94vw);max-height:92vh;background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(12,12,12,.45)}
+.mhead{padding:20px 22px 0}
+.mhead .tag{width:32px;height:6px;margin-bottom:10px}
+.mhead h3{font-size:20px;margin:0;font-weight:700}
+.form{padding:14px 22px 22px;display:grid;gap:12px}
+.form label{font-size:12.5px;font-weight:600;color:var(--ink2);display:block}
+.form input,.form select,.form textarea{display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--context);background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+.form textarea{min-height:84px;resize:vertical}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .end{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:9px 14px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (max-width:860px){.lane{grid-template-columns:62px minmax(0,1fr)}.lane .ln{display:none}.sp{flex-basis:100%}.mini{grid-template-columns:minmax(0,1fr)}.mini .t{grid-column:1}.mini .who{grid-column:2}}
+@media (max-width:520px){.search{min-width:0;max-width:none;width:100%}.form .two{grid-template-columns:1fr}.hubside{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <span class="tag"></span>
+      <h1 id="appTitle"></h1>
+      <p class="dek" id="eventMeta"></p>
+    </div>
+    <div class="hubside">
+      <img id="logo" alt="" hidden><span class="mark" id="mark" hidden></span>
+      <span class="syncst" id="sync"><i></i><span id="syncText">Saved on this device</span></span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="view" id="dashboard">
+      <div class="vhead"><div><span class="tag"></span><h2>Command centre</h2><p class="sub" id="s-dash"></p></div></div>
+      <section class="kpis" id="kpis" aria-label="Key figures" style="margin-top:22px"></section>
+      <div class="grid dash-grid">
+        <article class="card">
+          <span class="tag"></span><h2 id="h-cov"></h2><p class="sub" id="s-cov"></p>
+          <div class="controls" id="f-cov" role="group" aria-label="Show day"></div>
+          <div class="chart" id="c-cov"></div>
+          <p class="foot">Includes sessions added in the agenda tab.<br>Source: SFF 2026 programme, CGC session assignments</p>
+        </article>
+        <article class="card">
+          <span class="tag"></span><h2 id="h-team"></h2><p class="sub">Role, focus and sessions assigned by day</p>
+          <div class="team" id="team"></div>
+          
+        </article>
+        <article class="card wide">
+          <span class="tag"></span><h2 id="h-day"></h2><p class="sub" id="s-day"></p>
+          <div class="controls" id="f-day" role="group" aria-label="Choose day"></div>
+          <div id="dayList"></div>
+          <p class="foot">Open the agenda tab to add, complete or delete sessions.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="view" id="agenda">
+      <div class="vhead"><div><span class="tag"></span><h2>Session agenda</h2><p class="sub" id="s-agenda"></p></div><button class="btn" type="button" data-act="addSession">+ Add session</button></div>
+      <div class="controls">
+        <select class="sel" id="dayFilter" aria-label="Day"></select>
+        <select class="sel" id="picFilter" aria-label="Person in charge"></select>
+        <select class="sel" id="doneFilter" aria-label="Status"><option value="all">All statuses</option><option value="open">Not yet attended</option><option value="done">Completed</option></select>
+        <input class="search" id="searchSession" type="search" placeholder="Search sessions or focus" aria-label="Search sessions">
+      </div>
+      <div class="key akey" id="agendaKey"></div>
+      <div id="sessionList"></div>
+    </section>
+
+  </main>
+</div>
+
+<dialog id="modal" aria-labelledby="modalTitle"><div class="mhead"><span class="tag"></span><h3 id="modalTitle"></h3></div><form class="form" id="modalForm"></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================================================================
+   EASY CONFIGURATION AREA - EDIT THIS BLOCK IN NOTEPAD
+   Agenda-only version of the SFF 2026 coordination hub.
+   Change titles, team, days, logo and sessions below.
+   Team colours use theme colour names only:
+     blue, teal, ink, muted, blue2, red2
+   Sessions: [day, time, title, stage, person id, research focus]
+   Sessions only appear for people listed in "team".
+================================================================ */
+const APP_CONFIG = {
+  title: 'SFF 2026: CGC session agenda',
+  event: 'Singapore FinTech Festival',
+  dates: '18–20 November 2026',
+  venue: 'Singapore Expo',
+  logoText: 'CGC',
+  logoImage: 'embedded',   // 'embedded' uses the CGC logo stored at the end of this file, or give an image path such as 'logos/cgc.png'
+  days: [['1', '18 Nov'], ['2', '19 Nov'], ['3', '20 Nov']],
+  team: [
+    { id: 'Rahim',  name: 'En. Rahim', role: 'Chief Financial Officer',   focus: 'Financial strategy, capital, payments and regulation', colour: 'blue' },
+    { id: 'Syah',   name: 'Syah',      role: 'Head, Process Excellence',  focus: 'Process excellence, customer journeys, efficiency and controls', colour: 'teal' },
+    { id: 'Khalil', name: 'Khalil',    role: 'Head, Process Automation',  focus: 'AI, automation, architecture, data and digital trust', colour: 'ink' }
+  ],
+  tabs: [['dashboard', 'Dashboard'], ['agenda', 'Agenda']],
+  reportedSessionCount: 47,
+  firebase: { enabled: false, apiKey: 'PASTE_API_KEY', authDomain: 'PASTE_PROJECT.firebaseapp.com', projectId: 'PASTE_PROJECT', appId: 'PASTE_APP_ID' },
+  sessions: [
+    // Day 1
+    ['1', '9:30–9:50', 'Five Ruptures Shaping Financial Services', 'Festival', 'Rahim', 'Assess geoeconomic risks, funding implications and strategic exposure for CGC.'],
+    ['1', '10:10–10:30', 'Navigating Geoeconomic Headwinds in 2027', 'Festival', 'Rahim', 'Identify emerging financial corridors and implications for SME financing.'],
+    ['1', '10:50–11:10', 'Sustainable Capacity Building', 'Festival', 'Syah', 'Identify scalable capability-building models and process learning approaches.'],
+    ['1', '11:10–11:30', 'Agentic AI, Talent and Transformation', 'Festival', 'Khalil', 'Capture agent adoption models, skills and change requirements.'],
+    ['1', '11:30–12:20', 'New Operating Models in Financial Services', 'Festival', 'Rahim', 'Benchmark organisation design, governance and transformation sequencing.'],
+    ['1', '12:20–12:40', 'Building Human Experiences with AI', 'Festival', 'Syah', 'Translate AI into improved customer and employee journeys.'],
+    ['1', '12:40–1:00', 'Building Trusted Systems for Human Capacity', 'Festival', 'Khalil', 'Assess trust, responsible adoption and human-in-the-loop design.'],
+    ['1', '1:00–1:30', 'Central Banks & Future Payment Systems', 'Policy', 'Rahim', 'Cross-border payment priorities, trade-offs and relevance to Malaysia.'],
+    ['1', '1:00–1:20', '$43 Billion Question: Agentic AI', 'FutureMatters', 'Khalil', 'Size value pools and identify high-potential financial-service use cases.'],
+    ['1', '1:20–2:10', 'Turning AI Into Profit & Advantage', 'FutureMatters', 'Khalil', 'Benefits realisation, value measurement and scaling patterns.'],
+    ['1', '1:30–2:00', 'Stablecoins: Fringe to Framework', 'Policy', 'Rahim', 'Regulatory direction, financial stability and institutional implications.'],
+    ['1', '2:10–2:50', 'Operating Model for Cost & Efficiency', 'FutureMatters', 'Syah', 'Process redesign, cost take-out and operational performance levers.'],
+    ['1', '2:00–2:30', 'RWA & Tokenization: Rules', 'Policy', 'Rahim', 'Legal and accounting implications of tokenised real-world assets.'],
+    ['1', '2:30–3:00', 'Rules in the Rails & Conditional Money', 'Policy', 'Rahim', 'Programmable controls and payment governance.'],
+    ['1', '3:10–3:50', 'Reimagining the Customer Touchpoint', 'FutureMatters', 'Syah', 'Future-state customer journeys and readiness actions for CGC.'],
+    ['1', '3:50–4:30', 'Payments Revolution', 'FutureMatters', 'Khalil', 'Agentic payments architecture, stablecoins and automation opportunities.'],
+    ['1', '4:30–5:10', 'Inclusive Instant Payments', 'FutureMatters', 'Syah', 'Commercial sustainability, inclusion and customer-service implications.'],
+    // Day 2
+    ['2', '9:50–10:30', 'Policy Implications of Technology Rewiring', 'Festival', 'Rahim', 'Understand regulatory and governance consequences.'],
+    ['2', '10:30–10:50', 'Quantum Simulated Solutions', 'Festival', 'Khalil', 'Horizon-scan quantum-enabled use cases.'],
+    ['2', '10:50–11:20', 'Agentic Infrastructure & Tech Risks', 'Festival', 'Khalil', 'Architecture, controls, resilience and technology risk.'],
+    ['2', '11:20–11:50', 'Agentic AI Meets Programmable Money', 'Festival', 'Rahim', 'Financial control, treasury and payment implications.'],
+    ['2', '11:50–12:20', 'One World, Many Rails', 'Festival', 'Syah', 'Interoperability and customer/process implications.'],
+    ['2', '12:20–12:50', 'Global Ruptures in Banking', 'Festival', 'Rahim', 'Industry headwinds, funding trends and financial risks.'],
+    ['2', '1:00–1:30', 'Financial Products to Programmable Value', 'FutureMatters', 'Rahim', 'Commercial and balance-sheet implications.'],
+    ['2', '1:00–1:30', 'Agentic Enterprise: Accountability', 'Policy', 'Khalil', 'Accountability, containment and escalation controls.'],
+    ['2', '1:30–2:00', 'Money Stack Contest', 'FutureMatters', 'Rahim', 'Compare stablecoins, tokenised deposits, MMFs and CBDCs.'],
+    ['2', '2:00–2:30', 'RWA Tokenisation in Practice', 'FutureMatters', 'Rahim', 'Settlement, collateral mobility and investor access.'],
+    ['2', '2:30–3:00', 'When an Agent Decides to Pay', 'FutureMatters', 'Khalil', 'Agent checkout controls, identity and auditability.'],
+    ['2', '3:00–3:30', 'Domain-LLM Data: Build, Buy or Sovereign', 'Policy', 'Khalil', 'Sourcing, data sovereignty, vendor risk and governance.'],
+    ['2', '3:00–3:30', 'Production Readiness Stack', 'FutureMatters', 'Syah', 'Operational readiness, interoperability and control gates.'],
+    ['2', '3:30–4:00', 'Agentic Payments: Are Rails Ready?', 'Policy', 'Khalil', 'Integration readiness and controls.'],
+    ['2', '4:00–4:30', 'Balance Sheet Strategy in Money 3.0', 'FutureMatters', 'Rahim', 'Treasury, liquidity and balance-sheet strategy.'],
+    // Day 3
+    ['3', '9:40–10:00', 'Capital Rupture: Reallocation & Deployment', 'Festival', 'Rahim', 'Capital availability for CGC and SMEs.'],
+    ['3', '10:00–10:20', 'Economic Infrastructure for AI', 'Festival', 'Khalil', 'Infrastructure for AI-enabled financial services.'],
+    ['3', '10:20–10:50', 'Public Accountability Post IPO', 'Festival', 'Rahim', 'Governance, disclosure and accountability.'],
+    ['3', '11:30–12:20', 'Where Payments Value Is Created', 'Festival', 'Syah', 'Customer value, process economics and service opportunities.'],
+    ['3', '1:00–1:40', 'Islamic Finance Goes Digital', 'Policy', 'Rahim', 'Shariah, transparency and tokenisation.'],
+    ['3', '1:00–1:30', 'Business Case for Sustainability', 'Catalyst', 'Syah', 'Measurable operational and commercial value.'],
+    ['3', '2:00–2:30', 'South–South Playbook for the Unbanked', 'FutureMatters', 'Rahim', 'Financial inclusion for underserved SMEs.'],
+    ['3', '2:00–2:30', 'Scaling Green Digital Infrastructure', 'Catalyst', 'Syah', 'Efficient sustainable digital operations.'],
+    ['3', '2:10–2:40', 'Future of Trust: Deepfakes & Identity', 'Policy', 'Khalil', 'Identity assurance, fraud controls and GenAI risk.'],
+    ['3', '2:30–3:00', 'Invisible to Investable', 'FutureMatters', 'Rahim', 'Infrastructure expanding access to finance.'],
+    ['3', '3:00–3:30', 'Wealth Without Borders', 'FutureMatters', 'Rahim', 'Cross-border wealth implications.'],
+    ['3', '3:10–3:50', 'Coordinating a Quantum Migration', 'Policy', 'Khalil', 'Migration governance and cryptographic readiness.'],
+    ['3', '3:30–4:00', 'Islamic Finance Digital Inflection Point', 'FutureMatters', 'Rahim', 'Digital Islamic-finance growth opportunities.'],
+    ['3', '3:50–4:40', 'ASEAN’s Payments Moment', 'Policy', 'Syah', 'Regional connectivity and customer benefits.'],
+    ['3', '4:30–5:00', 'Next Alpha of the Payment Value Chain', 'FutureMatters', 'Rahim', 'New revenue pools and positioning.']
+  ]
+};
+/* END EASY CONFIGURATION AREA */
+
+const KEY = 'sff2026-cgc-hub-v5', OLD_KEYS = ['sff2026-cgc-hub-v4-action-buttons'];
+const COLOURS = ['blue', 'blue2', 'teal', 'red', 'red2', 'muted', 'ink', 'context'];
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TEAM_IDS = new Set(APP_CONFIG.team.map(p => p.id));
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const person = id => APP_CONFIG.team.find(p => p.id === id) || { id, name: id || 'Unassigned', colour: 'context' };
+const col = c => `var(--${COLOURS.includes(c) ? c : 'context'})`;
+const who = (id, prefix = '') => { const p = person(id); return `<span class="who"><i style="background:${col(p.colour)}"></i>${esc(prefix)}${esc(p.name)}</span>`; };
+const dayDate = d => (APP_CONFIG.days.find(x => x[0] === String(d)) || [, ''])[1];
+const dayName = d => `Day ${d}${dayDate(d) ? ', ' + dayDate(d) : ''}`;
+const opts = (list, sel) => list.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(sel ?? '') ? ' selected' : ''}>${esc(l)}</option>`).join('');
+const dayOpts = sel => opts(APP_CONFIG.days.map(([v, d]) => [v, `Day ${v} · ${d}`]), sel);
+const picOpts = sel => opts(APP_CONFIG.team.map(p => [p.id, p.name]), sel);
+const listOpts = (arr, sel) => opts(arr.map(v => [v, v]), sel);
+const plural = (n, w, ws) => `${n} ${n === 1 ? w : (ws || w + 's')}`;
+const joinNames = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+/* ---------------- time helpers ---------------- */
+// Times can be written "9:30–9:50", "2:00–2:30 PM", "11:30 AM–12:20 PM" or "14:00-14:30".
+// Without AM/PM, hours before 8 are read as afternoon (1:00 = 1 PM).
+const merOf = str => { const m = /\d\s*([ap])\.?\s*m\b/i.exec(str || ''); return m ? m[1].toLowerCase() : ''; };
+function parseT(str, fallback) {
+  const m = /(\d{1,2})(?:[:.](\d{2}))?/.exec(str || ''); if (!m) return null;
+  let h = +m[1]; const mi = +(m[2] || 0), mer = merOf(str) || fallback || '';
+  if (mer) { if (h === 12) h = 0; if (mer === 'p') h += 12; } else if (h < 8) h += 12;
+  return h * 60 + mi;
+}
+function span(t) {
+  const p = String(t || '').split(/\s*(?:[–—-]|\bto\b)\s*/i), em = merOf(p[1]);
+  const e = p[1] ? parseT(p[1]) : null;
+  let a = merOf(p[0]) ? parseT(p[0]) : parseT(p[0], em);
+  if (a !== null && e !== null && !merOf(p[0]) && em && a > e) a = parseT(p[0], em === 'p' ? 'a' : 'p');
+  if (a === null) return [9999, 10029];
+  let b = e === null ? a + 30 : e; if (b <= a) b = a + 30; return [a, b];
+}
+const mins = t => span(t)[0];
+const hm = v => { const h = Math.floor(v / 60) % 24; return { t: `${(h + 11) % 12 + 1}:${String(v % 60).padStart(2, '0')}`, p: h < 12 ? 'AM' : 'PM' }; };
+const fmtAt = v => { const x = hm(v); return `${x.t} ${x.p}`; };
+function fmtTime(t) {
+  const [a, b] = span(t); if (a === 9999) return String(t || '');
+  if (!/[–—-]|\bto\b/i.test(t)) return fmtAt(a);
+  const x = hm(a), y = hm(b); return x.p === y.p ? `${x.t}–${y.t} ${y.p}` : `${x.t} ${x.p}–${y.t} ${y.p}`;
+}
+const bySlot = (a, b) => String(a.day).localeCompare(String(b.day)) || mins(a.time) - mins(b.time) || String(a.title).localeCompare(String(b.title));
+function clashes(sessions) {
+  const out = {};
+  sessions.forEach((a, i) => sessions.slice(i + 1).forEach(b => {
+    if (a.day !== b.day || a.pic !== b.pic) return;
+    const [a0, a1] = span(a.time), [b0, b1] = span(b.time);
+    if (a0 < b1 && b0 < a1) { (out[a.id] = out[a.id] || []).push(b.title); (out[b.id] = out[b.id] || []).push(a.title); }
+  }));
+  return out;
+}
+
+/* ---------------- state ---------------- */
+function initial() {
+  if (APP_CONFIG.sessions.length !== APP_CONFIG.reportedSessionCount) console.warn('Agenda count mismatch:', APP_CONFIG.sessions.length, 'vs', APP_CONFIG.reportedSessionCount);
+  return clean({ sessions: APP_CONFIG.sessions.map((s, i) => ({ id: 's' + i, day: String(s[0]), time: s[1], title: s[2], stage: s[3], pic: s[4], focus: s[5], done: false })), insights: [], debriefs: [], contacts: [], leads: [], tasks: [], briefings: {} });
+}
+// Makes saved data safe to use and drops sessions for people no longer in the team.
+// Other records (insights, leads and so on from the full hub) are left untouched.
+function clean(x) {
+  if (!x || typeof x !== 'object') x = {};
+  ['sessions', 'insights', 'debriefs', 'contacts', 'leads', 'tasks'].forEach(k => { if (!Array.isArray(x[k])) x[k] = []; });
+  if (!x.briefings || typeof x.briefings !== 'object') x.briefings = {};
+  x.sessions = x.sessions.filter(s => TEAM_IDS.has(s.pic));
+  return x;
+}
+function load() {
+  try {
+    const cur = localStorage.getItem(KEY);
+    if (cur) return clean(JSON.parse(cur));
+    for (const k of OLD_KEYS) { const old = localStorage.getItem(k); if (old) { const x = clean(JSON.parse(old)); localStorage.setItem(KEY, JSON.stringify(x)); return x; } }
+  } catch (e) { console.warn('Could not read saved data', e); }
+  return initial();
+}
+let state = load();
+const channel = 'BroadcastChannel' in window ? new BroadcastChannel(KEY) : null;
+if (channel) channel.onmessage = () => { state = load(); renderAll(); };
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('Could not save on this device'); } }
+function save() { persist(); if (channel) channel.postMessage('refresh'); if (window.cloudSave) window.cloudSave(); renderAll(); }
+
+/* ---------------- small UI helpers ---------------- */
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+function countUp(el, to) {
+  if (REDUCE || !to) { el.textContent = to; return; }
+  const t0 = performance.now(), d = 1200;
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const ctx = document.createElement('canvas').getContext('2d');
+const tw = (t, size = 13, w = 400) => { ctx.font = `${w} ${size}px "Inter Tight", Helvetica, Arial, sans-serif`; return ctx.measureText(t).width; };
+function chips(el, items, sel, onPick) {
+  el.innerHTML = items.map(([v, l]) => `<button class="chip" type="button" data-v="${esc(v)}" aria-pressed="${v === sel}">${esc(l)}</button>`).join('');
+  el.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; el.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === b)); onPick(b.dataset.v); };
+}
+function barsSvg(box, rows, anim, label) {
+  const W = Math.max(260, box.clientWidth || 520), rowH = 34, top = 26, H = top + rows.length * rowH;
+  const L = Math.min(Math.max(...rows.map(r => tw(r.label)), 40) + 16, W * 0.4), R = W - 34;
+  const max = Math.max(1, ...rows.map(r => r.value)), st = max <= 5 ? 1 : max <= 10 ? 2 : max <= 25 ? 5 : 10, hi = Math.ceil(max / st) * st;
+  const x = v => L + (R - L) * v / hi;
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">`;
+  for (let v = 0; v <= hi; v += st) s += `<line class="${v ? 'grid-c' : 'axis-c'}" x1="${x(v)}" x2="${x(v)}" y1="${top - 6}" y2="${H}"/><text class="tick" x="${x(v)}" y="${top - 12}" text-anchor="middle">${v}</text>`;
+  rows.forEach((r, i) => {
+    const y = top + i * rowH;
+    s += `<text class="label" x="0" y="${y + rowH / 2 + 4}">${esc(r.label)}</text>`;
+    s += `<rect class="hbar" x="${L}" y="${y + rowH / 2 - 9}" height="18" width="${Math.max(0, x(r.value) - L)}" fill="${col(r.colour)}" style="transition-delay:${i * 90}ms"/>`;
+    s += `<text class="note" x="${x(r.value) + 6}" y="${y + rowH / 2 + 4}" fill="var(--ink)">${r.value}</text>`;
+  });
+  box.innerHTML = s + '</svg>';
+  if (anim && !REDUCE) { const b = box.querySelectorAll('.hbar'); b.forEach(r => r.style.transform = 'scaleX(0)'); requestAnimationFrame(() => requestAnimationFrame(() => b.forEach(r => r.style.transform = 'scaleX(1)'))); }
+}
+
+/* ---------------- init and tabs ---------------- */
+function init() {
+  $('appTitle').textContent = APP_CONFIG.title;
+  $('eventMeta').textContent = `${APP_CONFIG.event}, ${APP_CONFIG.dates}, ${APP_CONFIG.venue}`;
+  document.title = APP_CONFIG.title;
+  const mark = $('mark'), logo = $('logo');
+  const showMark = () => { logo.hidden = true; if (APP_CONFIG.logoText) { mark.textContent = APP_CONFIG.logoText; mark.hidden = false; } };
+  const logoSrc = APP_CONFIG.logoImage === 'embedded' ? EMBEDDED_LOGO : APP_CONFIG.logoImage;
+  if (logoSrc) { logo.onload = () => { logo.hidden = false; mark.hidden = true; }; logo.onerror = showMark; logo.alt = APP_CONFIG.logoText || ''; logo.src = logoSrc; } else showMark();
+
+  $('tabs').innerHTML = APP_CONFIG.tabs.map(([id, l]) => `<button class="chip" type="button" data-view="${id}" aria-pressed="false">${esc(l)}</button>`).join('');
+  $('tabs').onclick = e => { const b = e.target.closest('.chip'); if (b) showTab(b.dataset.view); };
+
+  const allDays = [['all', 'All days'], ...APP_CONFIG.days.map(([v, d]) => [v, `Day ${v} · ${d}`])];
+  $('dayFilter').innerHTML = opts(allDays);
+  const allPeople = [['all', 'Everyone'], ...APP_CONFIG.team.map(p => [p.id, p.name])];
+  $('picFilter').innerHTML = opts(allPeople);
+
+  ['dayFilter', 'picFilter', 'doneFilter'].forEach(id => $(id).onchange = () => renderAgenda(false));
+  $('searchSession').oninput = () => renderAgenda(false);
+  document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b && ACTIONS[b.dataset.act]) ACTIONS[b.dataset.act](b.dataset.id); });
+
+  let tab = 'dashboard'; try { tab = localStorage.getItem(KEY + ':tab') || tab; } catch (e) {}
+  if (!APP_CONFIG.tabs.some(t => t[0] === tab)) tab = APP_CONFIG.tabs[0][0];
+  renderAll(); showTab(tab); setupRealtime();
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (active() === 'dashboard') renderCoverage(false); }, 150); });
+}
+const active = () => (document.querySelector('.view.active') || {}).id;
+function showTab(id) {
+  document.querySelectorAll('#tabs .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === id));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
+  try { localStorage.setItem(KEY + ':tab', id); } catch (e) {}
+  if (id === 'dashboard') renderDashboard(true);
+  if (id === 'agenda') renderAgenda(true);
+}
+function renderAll() { if (active() === 'dashboard') renderDashboard(false); renderAgenda(); }
+
+/* ---------------- dashboard ---------------- */
+const DASH = { day: 'all', agendaDay: APP_CONFIG.days[0][0] };
+function renderDashboard(anim) {
+  const S = state.sessions, done = S.filter(s => s.done).length;
+  $('s-dash').textContent = `${APP_CONFIG.event}, ${APP_CONFIG.dates}. Live view of the sessions the team is covering.`;
+  const left = S.filter(s => !s.done).sort(bySlot), next = left[0], nCl = Object.keys(clashes(S)).length;
+  const perDay = APP_CONFIG.days.map(([d, dt]) => ({ d, dt, n: S.filter(s => s.day === d).length })).sort((a, b) => b.n - a.n);
+  const k = [
+    { v: S.length, l: 'Sessions assigned', c: `Across ${APP_CONFIG.days.length} days, covered by ${plural(APP_CONFIG.team.length, 'person', 'people')}` },
+    { v: done, l: 'Completed', c: S.length ? `${Math.round(done / S.length * 100)}% of the agenda` : 'No sessions yet' },
+    { v: left.length, l: 'Still to attend', c: next ? `Next: Day ${next.day}, ${fmtAt(mins(next.time))}, ${next.title}` : 'All sessions completed' },
+    nCl ? { v: nCl, l: 'Double-booked sessions', c: 'Same person, overlapping times. See the agenda.', alert: true }
+        : { v: perDay[0] ? perDay[0].n : 0, l: 'Sessions on the busiest day', c: perDay[0] ? `Day ${perDay[0].d}, ${perDay[0].dt}` : '' }
+  ];
+  $('kpis').innerHTML = k.map(x => `<div class="kpi${x.alert ? ' alert' : ''}"><div class="v"><span class="num">${anim && !REDUCE ? 0 : x.v}</span></div><div class="l">${x.l}</div><div class="c">${esc(x.c)}</div></div>`).join('');
+  if (anim) $('kpis').querySelectorAll('.num').forEach((el, i) => countUp(el, k[i].v));
+  chips($('f-cov'), [['all', 'All days'], ...APP_CONFIG.days.map(([v]) => [v, 'Day ' + v])], DASH.day, v => { DASH.day = v; renderCoverage(true); });
+  chips($('f-day'), APP_CONFIG.days.map(([v, d]) => [v, `Day ${v} · ${d}`]), DASH.agendaDay, v => { DASH.agendaDay = v; renderDayList(); });
+  renderCoverage(anim); renderTeam(); renderDayList();
+}
+function renderCoverage(anim) {
+  const d = DASH.day, S = state.sessions.filter(s => d === 'all' || s.day === d);
+  const rows = APP_CONFIG.team.map(p => ({ label: p.name, value: S.filter(s => s.pic === p.id).length, colour: p.colour })).sort((a, b) => b.value - a.value);
+  const when = d === 'all' ? '' : ` on day ${d}`;
+  const tied = rows.filter(r => r.value === rows[0].value);
+  $('h-cov').textContent = !S.length ? `No sessions are assigned${when}` : tied.length > 1 ? `${joinNames(tied.map(r => r.label))} each cover ${plural(rows[0].value, 'session')}${when}` : `${rows[0].label} covers the most sessions${when}: ${rows[0].value} of ${S.length}`;
+  $('s-cov').textContent = `Sessions by person in charge, ${d === 'all' ? APP_CONFIG.dates : dayName(d) + ' 2026'}`;
+  barsSvg($('c-cov'), rows, anim, 'Bar chart of sessions by person in charge');
+}
+function renderTeam() {
+  $('h-team').textContent = `${APP_CONFIG.team.length} people are attending, covering ${plural(state.sessions.length, 'session')}`;
+  $('team').innerHTML = APP_CONFIG.team.map(p => {
+    const mine = state.sessions.filter(s => s.pic === p.id);
+    const per = APP_CONFIG.days.map(([d]) => `Day ${d}: ${mine.filter(s => s.day === d).length}`).join(' · ');
+    return `<div class="dev" style="border-top-color:${col(p.colour)}"><h3>${esc(p.name)}<b>${mine.length}<small>sessions</small></b></h3><div class="role">${esc(p.role)}</div><ul><li>${esc(p.focus)}</li><li>${per}</li></ul></div>`;
+  }).join('');
+}
+function renderDayList() {
+  const d = DASH.agendaDay, S = state.sessions.filter(s => s.day === d).sort(bySlot), cl = clashes(S);
+  const nCl = Object.keys(cl).length, first = S[0], last = S[S.length - 1];
+  $('h-day').textContent = !S.length ? `Nothing is assigned on day ${d}` : nCl ? `Day ${d} has ${plural(S.length, 'session')}, with ${plural(nCl, 'session')} double-booked` : `Day ${d} has ${plural(S.length, 'session')}, from ${fmtAt(span(first.time)[0])} to ${fmtAt(Math.max(...S.map(x => span(x.time)[1])))}`;
+  $('s-day').textContent = `${dayName(d)} 2026, in time order`;
+  $('dayList').innerHTML = S.map(s => `<div class="mini${s.done ? ' done' : ''}"><span class="t">${esc(fmtTime(s.time))}</span><span>${esc(s.title)} <span class="s">${esc(s.stage)}${s.done ? ' · completed' : ''}</span>${cl[s.id] ? ` <span class="clash">Overlaps ${esc(cl[s.id].join(', '))}</span>` : ''}</span>${who(s.pic)}</div>`).join('') || '<p class="empty">No sessions on this day.</p>';
+}
+
+/* ---------------- agenda ---------------- */
+function renderAgenda(anim) {
+  const d = $('dayFilter').value || 'all', p = $('picFilter').value || 'all', st = $('doneFilter').value, q = $('searchSession').value.trim().toLowerCase();
+  const all = state.sessions.slice().sort(bySlot), cl = clashes(all);
+  const a = all.filter(s => (d === 'all' || s.day === d) && (p === 'all' || s.pic === p) && (st === 'all' || (st === 'done') === !!s.done) && `${s.title} ${s.focus} ${s.stage}`.toLowerCase().includes(q));
+  $('s-agenda').textContent = `Showing ${a.length} of ${plural(all.length, 'session')}; ${all.filter(s => s.done).length} marked complete. Sessions that start together share a row.`;
+  $('agendaKey').innerHTML = APP_CONFIG.team.map(t => `<span><i class="sw" style="background:${col(t.colour)}"></i>${esc(t.name)}</span>`).join('') + `<span><i class="sw" style="background:var(--context)"></i>Completed</span>`;
+  let html = '', i = 0;
+  APP_CONFIG.days.forEach(([day, date]) => {
+    const ds = a.filter(s => s.day === day); if (!ds.length) return;
+    html += `<div class="aday">Day ${esc(day)} · ${esc(date)}<span>${plural(ds.length, 'session')}</span></div>`;
+    const lanes = [];
+    ds.forEach(s => { const k = mins(s.time); const l = lanes.find(x => x.k === k); l ? l.items.push(s) : lanes.push({ k, items: [s] }); });
+    lanes.forEach(l => {
+      html += `<div class="lane"><div class="lt">${l.k === 9999 ? 'Time to be confirmed' : fmtAt(l.k)}</div><div class="ln">${l.items.length}</div><div class="pills">` + l.items.map(s => {
+        const pc = person(s.pic), c = COLOURS.includes(pc.colour) ? pc.colour : 'context';
+        return `<div class="sp${c === 'ink' ? ' ink' : ''}${s.done ? ' done' : ''}" style="background:${col(c)};--i:${i++}">
+          <h3>${esc(s.title)}</h3><div class="m">${esc([fmtTime(s.time), s.stage, pc.name, s.done ? 'completed' : ''].filter(Boolean).join(' · '))}</div>${s.focus ? `<div class="f">${esc(s.focus)}</div>` : ''}
+          ${cl[s.id] ? `<span class="ov">Overlaps ${esc(cl[s.id].join(', '))}</span>` : ''}
+          <div class="sa"><button type="button" data-act="toggleSession" data-id="${s.id}" aria-pressed="${!!s.done}" aria-label="${s.done ? 'Reopen' : 'Mark complete'}: ${esc(s.title)}">${s.done ? 'Completed' : 'Mark complete'}</button><button type="button" class="sdel" data-act="remove" data-id="sessions:${s.id}" aria-label="Delete session: ${esc(s.title)}">Delete</button></div></div>`;
+      }).join('') + `</div></div>`;
+    });
+  });
+  const box = $('sessionList');
+  if (!anim) box.classList.remove('pillsin');
+  box.innerHTML = html || '<p class="empty">No sessions match these filters.</p>';
+  if (anim && !REDUCE) { box.classList.remove('pillsin'); void box.offsetWidth; box.classList.add('pillsin'); clearTimeout(box._t); box._t = setTimeout(() => box.classList.remove('pillsin'), 2500); }
+}
+
+/* ---------------- forms ---------------- */
+function showModal(title, fields, onSave) {
+  $('modalTitle').textContent = title;
+  const f = $('modalForm');
+  f.innerHTML = fields + `<div class="end"><button type="button" class="btn sec" data-close>Cancel</button><button class="btn" type="submit">Save</button></div>`;
+  f.querySelector('[data-close]').onclick = () => $('modal').close();
+  f.onsubmit = e => { e.preventDefault(); onSave(Object.fromEntries(new FormData(f))); $('modal').close(); save(); };
+  $('modal').showModal();
+  const first = f.querySelector('textarea[required],input[required]'); if (first) first.focus();
+}
+const F = {
+  sel: (name, label, options) => `<label>${label}<select name="${name}">${options}</select></label>`,
+  inp: (name, label, val = '', extra = '') => `<label>${label}<input name="${name}" value="${esc(val)}" ${extra}></label>`,
+  txt: (name, label, val = '', extra = '') => `<label>${label}<textarea name="${name}" ${extra}>${esc(val)}</textarea></label>`,
+  two: (a, b) => `<div class="two">${a}${b}</div>`
+};
+function openSessionForm() {
+  showModal('Add a session',
+    F.two(F.sel('day', 'Day', dayOpts()), F.inp('time', 'Time', '', 'required placeholder="2:00–2:30 PM"')) + F.inp('title', 'Session title', '', 'required') +
+    F.two(F.inp('stage', 'Stage', '', 'placeholder="Festival"'), F.sel('pic', 'Person in charge', picOpts())) + F.txt('focus', 'Research focus'),
+    d => { state.sessions.push({ ...d, id: uid(), done: false }); setTimeout(() => toast(`Session added: Day ${d.day}, ${fmtTime(d.time)}`), 0); });
+}
+const ACTIONS = {
+  addSession: openSessionForm,
+  toggleSession: id => { const s = state.sessions.find(x => x.id === id); if (s) { s.done = !s.done; save(); } },
+  remove: key => {
+    const [type, id] = key.split(':'), item = (state[type] || []).find(x => x.id === id); if (!item) return;
+    if (confirm(`Delete the session "${item.title}" (Day ${item.day}, ${fmtTime(item.time)})?`)) { state[type] = state[type].filter(x => x.id !== id); save(); toast('Session deleted'); }
+  }
+};
+
+/* ---------------- optional live sync (Firebase) ---------------- */
+async function setupRealtime() {
+  if (!APP_CONFIG.firebase.enabled) return;
+  const box = $('sync'), txt = $('syncText'); txt.textContent = 'Connecting…';
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js');
+    const { getFirestore, doc, setDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js');
+    const ref = doc(getFirestore(initializeApp(APP_CONFIG.firebase)), 'eventApps', 'sff2026-cgc');
+    onSnapshot(ref, snap => { if (snap.exists()) { state = clean(snap.data().state); persist(); renderAll(); } txt.textContent = 'Live sync'; box.className = 'syncst live'; });
+    window.cloudSave = () => setDoc(ref, { state, updatedAt: new Date().toISOString() });
+  } catch (e) { txt.textContent = 'Sync unavailable'; box.className = 'syncst err'; console.error(e); }
+}
+
+/* CGC logo (PNG), embedded so the file works on its own. */
+const EMBEDDED_LOGO = 'data:image/png;base64,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';
+
+init();
+</script>
+</body>
+</html>
 
