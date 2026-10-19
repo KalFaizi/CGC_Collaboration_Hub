@@ -181,7 +181,7 @@ details p{white-space:pre-line;font-size:12.5px;color:var(--ink2);margin:6px 0 0
 .pillsin .sp{animation:pillin .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 22ms)}
 @keyframes pillin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mini{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:baseline}
+.mini{display:grid;grid-template-columns:160px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:baseline}
 .mini .t{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .mini .s{color:var(--ink2);font-size:12.5px}
 .mini.done{color:var(--muted)}
@@ -293,7 +293,7 @@ const APP_CONFIG = {
   logoImage: 'embedded',   // 'embedded' uses the CGC logo stored at the end of this file, or give an image path such as 'logos/cgc.png'
   days: [['1', '18 Nov'], ['2', '19 Nov'], ['3', '20 Nov']],
   team: [
-    { id: 'Rahim',  name: 'En. Rahim', role: 'Chief Financial & Operating Officer',   focus: 'Financial strategy, capital, payments and regulation', colour: 'blue' },
+    { id: 'Rahim',  name: 'En. Rahim', role: 'Chief Financial Officer',   focus: 'Financial strategy, capital, payments and regulation', colour: 'blue' },
     { id: 'Syah',   name: 'Syah',      role: 'Head, Process Excellence',  focus: 'Process excellence, customer journeys, efficiency and controls', colour: 'teal' },
     { id: 'Khalil', name: 'Khalil',    role: 'Head, Process Automation',  focus: 'AI, automation, architecture, data and digital trust', colour: 'ink' }
   ],
@@ -398,7 +398,7 @@ const fmtAt = v => { const x = hm(v); return `${x.t} ${x.p}`; };
 function fmtTime(t) {
   const [a, b] = span(t); if (a === 9999) return String(t || '');
   if (!/[–—-]|\bto\b/i.test(t)) return fmtAt(a);
-  const x = hm(a), y = hm(b); return x.p === y.p ? `${x.t}–${y.t} ${y.p}` : `${x.t} ${x.p}–${y.t} ${y.p}`;
+  return `${fmtAt(a)} – ${fmtAt(b)}`;
 }
 const bySlot = (a, b) => String(a.day).localeCompare(String(b.day)) || mins(a.time) - mins(b.time) || String(a.title).localeCompare(String(b.title));
 function clashes(sessions) {
@@ -633,4 +633,3 @@ init();
 </script>
 </body>
 </html>
-
