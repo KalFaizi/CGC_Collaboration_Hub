@@ -173,13 +173,15 @@ details p{white-space:pre-line;font-size:12.5px;color:var(--ink2);margin:6px 0 0
 .sp .sa{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
 .sp .sa button{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;background:transparent;color:inherit;border:1px solid currentColor;cursor:pointer;opacity:.92}
 .sp .sa button:hover{background:rgba(255,255,255,.16);opacity:1}
+.sp .sa .sdel{margin-left:auto;border-color:transparent;text-decoration:underline;text-underline-offset:2px}
+.sp .sa .sdel:hover{border-color:currentColor;text-decoration:none}
 .sp .sa button[aria-pressed="true"]{background:var(--bg);color:var(--ink);border-color:var(--bg)}
 .sp.done{background:var(--context)!important;color:var(--ink)}
 .sp.done .sa button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .pillsin .sp{animation:pillin .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 22ms)}
 @keyframes pillin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mini{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:baseline}
+.mini{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:baseline}
 .mini .t{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .mini .s{color:var(--ink2);font-size:12.5px}
 .mini.done{color:var(--muted)}
@@ -231,7 +233,7 @@ dialog::backdrop{background:rgba(12,12,12,.45)}
 .form .end{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:9px 14px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.show{opacity:1}
-@media (max-width:860px){.entries,.entries.three,.board,.scan,.settings{grid-template-columns:1fr}.lane{grid-template-columns:62px minmax(0,1fr)}.lane .ln{display:none}.sp{flex-basis:100%}.mini{grid-template-columns:80px minmax(0,1fr)}.mini .who{grid-column:2}}
+@media (max-width:860px){.entries,.entries.three,.board,.scan,.settings{grid-template-columns:1fr}.lane{grid-template-columns:62px minmax(0,1fr)}.lane .ln{display:none}.sp{flex-basis:100%}.mini{grid-template-columns:minmax(0,1fr)}.mini .t{grid-column:1}.mini .who{grid-column:2}}
 @media (max-width:520px){.search{min-width:0;max-width:none;width:100%}.form .two{grid-template-columns:1fr}.hubside{align-items:flex-start}}
 </style>
 </head>
@@ -479,8 +481,31 @@ const joinNames = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + '
 const norm = (v, list) => { const m = list.find(x => x.toLowerCase() === String(v || '').toLowerCase()); return m || v; };
 
 /* ---------------- time helpers ---------------- */
-function mins(t) { const m = /(\d{1,2}):(\d{2})/.exec(t || ''); if (!m) return 9999; let h = +m[1]; if (h < 8) h += 12; return h * 60 + +m[2]; }
-function span(t) { const p = String(t || '').split(/[–-]/); const a = mins(p[0]); let b = p[1] ? mins(p[1]) : a + 30; if (b <= a) b = a + 30; return [a, b]; }
+// Times can be written "9:30–9:50", "2:00–2:30 PM", "11:30 AM–12:20 PM" or "14:00-14:30".
+// Without AM/PM, hours before 8 are read as afternoon (1:00 = 1 PM).
+const merOf = str => { const m = /\d\s*([ap])\.?\s*m\b/i.exec(str || ''); return m ? m[1].toLowerCase() : ''; };
+function parseT(str, fallback) {
+  const m = /(\d{1,2})(?:[:.](\d{2}))?/.exec(str || ''); if (!m) return null;
+  let h = +m[1]; const mi = +(m[2] || 0), mer = merOf(str) || fallback || '';
+  if (mer) { if (h === 12) h = 0; if (mer === 'p') h += 12; } else if (h < 8) h += 12;
+  return h * 60 + mi;
+}
+function span(t) {
+  const p = String(t || '').split(/\s*(?:[–—-]|\bto\b)\s*/i), em = merOf(p[1]);
+  const e = p[1] ? parseT(p[1]) : null;
+  let a = merOf(p[0]) ? parseT(p[0]) : parseT(p[0], em);
+  if (a !== null && e !== null && !merOf(p[0]) && em && a > e) a = parseT(p[0], em === 'p' ? 'a' : 'p');
+  if (a === null) return [9999, 10029];
+  let b = e === null ? a + 30 : e; if (b <= a) b = a + 30; return [a, b];
+}
+const mins = t => span(t)[0];
+const hm = v => { const h = Math.floor(v / 60) % 24; return { t: `${(h + 11) % 12 + 1}:${String(v % 60).padStart(2, '0')}`, p: h < 12 ? 'AM' : 'PM' }; };
+const fmtAt = v => { const x = hm(v); return `${x.t} ${x.p}`; };
+function fmtTime(t) {
+  const [a, b] = span(t); if (a === 9999) return String(t || '');
+  if (!/[–—-]|\bto\b/i.test(t)) return fmtAt(a);
+  const x = hm(a), y = hm(b); return x.p === y.p ? `${x.t}–${y.t} ${y.p}` : `${x.t} ${x.p}–${y.t} ${y.p}`;
+}
 const bySlot = (a, b) => String(a.day).localeCompare(String(b.day)) || mins(a.time) - mins(b.time) || String(a.title).localeCompare(String(b.title));
 function clashes(sessions) {
   const out = {};
@@ -636,9 +661,9 @@ function renderTeam() {
 function renderDayList() {
   const d = DASH.agendaDay, S = state.sessions.filter(s => s.day === d).sort(bySlot), cl = clashes(S);
   const nCl = Object.keys(cl).length, first = S[0], last = S[S.length - 1];
-  $('h-day').textContent = !S.length ? `Nothing is assigned on day ${d}` : nCl ? `Day ${d} has ${plural(S.length, 'session')}, with ${plural(nCl, 'session')} double-booked` : `Day ${d} has ${plural(S.length, 'session')}, from ${first.time.split(/[–-]/)[0]} to ${(last.time.split(/[–-]/)[1] || last.time)}`;
+  $('h-day').textContent = !S.length ? `Nothing is assigned on day ${d}` : nCl ? `Day ${d} has ${plural(S.length, 'session')}, with ${plural(nCl, 'session')} double-booked` : `Day ${d} has ${plural(S.length, 'session')}, from ${fmtAt(span(first.time)[0])} to ${fmtAt(Math.max(...S.map(x => span(x.time)[1])))}`;
   $('s-day').textContent = `${dayName(d)} 2026, in time order`;
-  $('dayList').innerHTML = S.map(s => `<div class="mini${s.done ? ' done' : ''}"><span class="t">${esc(s.time)}</span><span>${esc(s.title)} <span class="s">${esc(s.stage)}${s.done ? ' · completed' : ''}</span>${cl[s.id] ? ` <span class="clash">Overlaps ${esc(cl[s.id].join(', '))}</span>` : ''}</span>${who(s.pic)}</div>`).join('') || '<p class="empty">No sessions on this day.</p>';
+  $('dayList').innerHTML = S.map(s => `<div class="mini${s.done ? ' done' : ''}"><span class="t">${esc(fmtTime(s.time))}</span><span>${esc(s.title)} <span class="s">${esc(s.stage)}${s.done ? ' · completed' : ''}</span>${cl[s.id] ? ` <span class="clash">Overlaps ${esc(cl[s.id].join(', '))}</span>` : ''}</span>${who(s.pic)}</div>`).join('') || '<p class="empty">No sessions on this day.</p>';
 }
 
 /* ---------------- agenda ---------------- */
@@ -653,14 +678,14 @@ function renderAgenda(anim) {
     const ds = a.filter(s => s.day === day); if (!ds.length) return;
     html += `<div class="aday">Day ${esc(day)} · ${esc(date)}<span>${plural(ds.length, 'session')}</span></div>`;
     const lanes = [];
-    ds.forEach(s => { const k = String(s.time).split(/[–-]/)[0].trim(); const l = lanes.find(x => x.k === k); l ? l.items.push(s) : lanes.push({ k, items: [s] }); });
+    ds.forEach(s => { const k = mins(s.time); const l = lanes.find(x => x.k === k); l ? l.items.push(s) : lanes.push({ k, items: [s] }); });
     lanes.forEach(l => {
-      html += `<div class="lane"><div class="lt">${esc(l.k)}</div><div class="ln">${l.items.length}</div><div class="pills">` + l.items.map(s => {
+      html += `<div class="lane"><div class="lt">${l.k === 9999 ? 'Time to be confirmed' : fmtAt(l.k)}</div><div class="ln">${l.items.length}</div><div class="pills">` + l.items.map(s => {
         const pc = person(s.pic), c = COLOURS.includes(pc.colour) ? pc.colour : 'context';
         return `<div class="sp${c === 'ink' ? ' ink' : ''}${s.done ? ' done' : ''}" style="background:${col(c)};--i:${i++}">
-          <h3>${esc(s.title)}</h3><div class="m">${esc(s.time)} · ${esc(s.stage)} · ${esc(pc.name)}${s.done ? ' · completed' : ''}</div><div class="f">${esc(s.focus)}</div>
+          <h3>${esc(s.title)}</h3><div class="m">${esc([fmtTime(s.time), s.stage, pc.name, s.done ? 'completed' : ''].filter(Boolean).join(' · '))}</div>${s.focus ? `<div class="f">${esc(s.focus)}</div>` : ''}
           ${cl[s.id] ? `<span class="ov">Overlaps ${esc(cl[s.id].join(', '))}</span>` : ''}
-          <div class="sa"><button type="button" data-act="toggleSession" data-id="${s.id}" aria-pressed="${!!s.done}" aria-label="${s.done ? 'Reopen' : 'Mark complete'}: ${esc(s.title)}">${s.done ? 'Completed' : 'Mark complete'}</button><button type="button" data-act="quickInsight" data-id="${s.id}" aria-label="Add insight for ${esc(s.title)}">Insight</button><button type="button" data-act="leadFromSession" data-id="${s.id}" aria-label="Add networking lead from ${esc(s.title)}">Lead</button></div></div>`;
+          <div class="sa"><button type="button" data-act="toggleSession" data-id="${s.id}" aria-pressed="${!!s.done}" aria-label="${s.done ? 'Reopen' : 'Mark complete'}: ${esc(s.title)}">${s.done ? 'Completed' : 'Mark complete'}</button><button type="button" data-act="quickInsight" data-id="${s.id}" aria-label="Add insight for ${esc(s.title)}">Insight</button><button type="button" data-act="leadFromSession" data-id="${s.id}" aria-label="Add networking lead from ${esc(s.title)}">Lead</button><button type="button" class="sdel" data-act="remove" data-id="sessions:${s.id}" aria-label="Delete session: ${esc(s.title)}">Delete</button></div></div>`;
       }).join('') + `</div></div>`;
     });
   });
@@ -772,9 +797,9 @@ function openQuickInsight(sessionId) {
 }
 function openSessionForm() {
   showModal('Add a session',
-    F.two(F.sel('day', 'Day', dayOpts()), F.inp('time', 'Time', '', 'required placeholder="2:00–2:30"')) + F.inp('title', 'Session title', '', 'required') +
+    F.two(F.sel('day', 'Day', dayOpts()), F.inp('time', 'Time', '', 'required placeholder="2:00–2:30 PM"')) + F.inp('title', 'Session title', '', 'required') +
     F.two(F.inp('stage', 'Stage', '', 'placeholder="Festival"'), F.sel('pic', 'Person in charge', picOpts())) + F.txt('focus', 'Research focus'),
-    d => state.sessions.push({ ...d, id: uid(), done: false }));
+    d => { state.sessions.push({ ...d, id: uid(), done: false }); setTimeout(() => toast(`Session added: Day ${d.day}, ${fmtTime(d.time)}`), 0); });
 }
 function openDebriefForm() {
   showModal('Add a debrief point',
@@ -861,7 +886,11 @@ const ACTIONS = {
   cycleContact: id => { const x = state.contacts.find(v => v.id === id); if (x) { x.status = CONTACT_STATUS[(CONTACT_STATUS.indexOf(x.status) + 1) % CONTACT_STATUS.length]; save(); } },
   advanceLead: id => { const x = state.leads.find(v => v.id === id); if (x) { x.status = LEAD_STATUS[Math.min(LEAD_STATUS.indexOf(x.status) + 1, LEAD_STATUS.length - 1)]; save(); } },
   cycleTask: id => { const x = state.tasks.find(v => v.id === id); if (x) { x.status = TASK_STATUS[Math.min(TASK_STATUS.indexOf(x.status) + 1, TASK_STATUS.length - 1)]; save(); } },
-  remove: key => { const [type, id] = key.split(':'); if (confirm('Delete this item?')) { state[type] = state[type].filter(x => x.id !== id); save(); } },
+  remove: key => {
+    const [type, id] = key.split(':'), item = (state[type] || []).find(x => x.id === id); if (!item) return;
+    const msg = type === 'sessions' ? `Delete the session "${item.title}" (Day ${item.day}, ${fmtTime(item.time)})?\n\nInsights and leads already captured from it are kept.` : 'Delete this item?';
+    if (confirm(msg)) { state[type] = state[type].filter(x => x.id !== id); save(); toast(type === 'sessions' ? 'Session deleted' : 'Deleted'); }
+  },
   generateBriefing,
   saveBriefing: () => { state.briefings[$('briefDay').value] = $('briefText').value; save(); toast('Briefing saved'); },
   copyBriefing: async () => { try { await navigator.clipboard.writeText($('briefText').value); toast('Copied'); } catch (e) { $('briefText').select(); toast('Press Ctrl+C to copy'); } },
