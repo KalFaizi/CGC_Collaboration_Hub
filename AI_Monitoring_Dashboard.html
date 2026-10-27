@@ -1,0 +1,664 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CGC Copilot Monitor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: editorial single column (max 1180px) — title, sticky filter bar, KPI strip, then four question sections, each a 2-column grid of Economist-style chart cards */
+:root{
+  --bg:#FFFFFF; --ink:#121212; --ink2:#525252; --ink3:#6E6E6E; --rule:#121212;
+  --grid:#E3E5E6; --ctx:#C8CCCE; --track:#EEF0F1;
+  --hi:#E3120B; --hi2:#F0837C; --hi3:#F7C6C2; --dark:#3B5360; --chip:#F3F4F4;
+  --f-display:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --f-body:'Source Sans 3','Helvetica Neue',Arial,sans-serif;
+  --f-sym:'Segoe UI Symbol','Cambria Math','DejaVu Sans','Apple Symbols',sans-serif;
+  --lw:168px; --vw:64px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121518; --ink:#ECECEC; --ink2:#B0B5B9; --ink3:#9096A0; --rule:#ECECEC;
+  --grid:#2A3035; --ctx:#4E585F; --track:#1E2428;
+  --hi:#FF4B3E; --hi2:#B5463F; --hi3:#6A302B; --dark:#A3BAC5; --chip:#1D2227; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121518; --ink:#ECECEC; --ink2:#B0B5B9; --ink3:#9096A0; --rule:#ECECEC;
+  --grid:#2A3035; --ctx:#4E585F; --track:#1E2428;
+  --hi:#FF4B3E; --hi2:#B5463F; --hi3:#6A302B; --dark:#A3BAC5; --chip:#1D2227; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
+header.top{display:flex;flex-direction:column;gap:8px;border-top:4px solid var(--hi);padding-top:16px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--hi)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.6vw,38px);line-height:1.12;margin:0;max-width:30ch;text-wrap:balance}
+.lede{color:var(--ink2);margin:0;max-width:75ch}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
+  padding-block:10px;border-bottom:1px solid var(--grid)}
+.bar label{font-size:13px;font-weight:600;color:var(--ink2)}
+select,button{font:inherit;font-size:14px;color:var(--ink);background:var(--chip);border:1px solid var(--ctx);border-radius:3px;padding:6px 10px;cursor:pointer}
+select:focus-visible,button:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+.bar .sp{flex:1}
+.bar .note{font-size:12.5px;color:var(--ink3)}
+button.replay{background:transparent;border-color:var(--ink);font-weight:600}
+button.replay:hover{background:var(--ink);color:var(--bg)}
+/* KPI tiles */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.kpi{border-top:1px solid var(--rule);padding-top:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .q{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.kpi .q b{color:var(--hi)}
+.kpi .v{font-size:clamp(30px,3.4vw,40px);font-weight:700;line-height:1.05;letter-spacing:-.01em}
+.kpi .l{font-size:14px;color:var(--ink2)}
+.kpi .c{font-size:13.5px;color:var(--ink)}
+.kpi .c .up{color:var(--hi);font-weight:700}
+/* Sections */
+section.q{display:flex;flex-direction:column;gap:18px}
+.qhead{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--grid);padding-bottom:8px}
+.qhead .n{font-family:var(--f-display);font-weight:700;font-size:34px;color:var(--hi);line-height:1}
+.qhead h2{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0;line-height:1.2;text-wrap:balance}
+.qhead p{margin:4px 0 0;color:var(--ink2);font-size:14.5px;max-width:80ch}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 40px}
+.span2{grid-column:1/-1}
+/* Card template */
+.card{position:relative;border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card::before{content:"";position:absolute;top:-1px;left:0;width:44px;height:7px;background:var(--hi)}
+.card h3{font-size:19px;font-weight:700;line-height:1.25;margin:4px 0 0;text-wrap:balance}
+.card .sub{font-size:14px;color:var(--ink2);margin:0}
+.card .ctl{display:flex;gap:0;margin-top:4px}
+.seg button{border-radius:0;padding:4px 10px;font-size:13px;background:transparent}
+.seg button:first-child{border-radius:3px 0 0 3px}
+.seg button:last-child{border-radius:0 3px 3px 0;border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chart{position:relative;margin-top:8px;min-width:0}
+.card footer{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.4}
+.card footer .brand{font-weight:700;letter-spacing:.08em;color:var(--ink3);white-space:nowrap}
+.card footer p{margin:0}
+.multi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.multi h4{margin:6px 0 0;font-size:14px;font-weight:600;color:var(--ink)}
+/* Horizontal bars / dot plot */
+.hb{position:relative;font-size:13.5px}
+.hb .plot{position:absolute;left:var(--lw);right:var(--vw);top:0;bottom:0}
+.hb .gl{position:absolute;top:22px;bottom:22px;width:1px;background:var(--grid)}
+.hb .gl.zero{background:var(--ink)}
+.hb .tk{position:absolute;top:0;transform:translateX(-50%);font-size:12px;color:var(--ink3);white-space:nowrap;transition:left .6s}
+.hb .tk.first{transform:none}
+.hb .lab{position:absolute;left:0;width:calc(var(--lw) - 10px);height:30px;display:flex;align-items:center;justify-content:flex-end;text-align:right;line-height:1.1;color:var(--ink);transition:top .6s cubic-bezier(.4,0,.2,1)}
+.hb .lab.on{font-weight:700}
+.hb .b,.hb .bg{position:absolute;left:0;height:18px;margin-top:6px;background:var(--ctx);transition:top .6s cubic-bezier(.4,0,.2,1),width .8s cubic-bezier(.4,0,.2,1),background-color .4s}
+.hb .bg{background:var(--track)}
+.hb .b.hi{background:var(--hi)} .hb .b.mid{background:var(--hi2)} .hb .b.lo{background:var(--hi3)}
+.hb .val{position:absolute;height:30px;display:flex;align-items:center;padding-left:6px;white-space:nowrap;font-size:13px;color:var(--ink2);transition:top .6s cubic-bezier(.4,0,.2,1),left .8s cubic-bezier(.4,0,.2,1)}
+.hb .val.on{color:var(--ink);font-weight:700}
+.hb.dots .b{height:2px;margin-top:14px;background:var(--grid)}
+.hb.dots .b::after{content:"";position:absolute;right:-6px;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--ctx);transition:background-color .4s}
+.hb.dots .b.hi::after{background:var(--hi)}
+.hb.dots .b.hi{background:var(--grid)}
+.hb.dots .b.sel::after{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ink)}
+.hb.dots .val{padding-left:12px}
+.hb .ref{position:absolute;top:22px;bottom:22px;border-left:1.5px dashed var(--hi);transition:left .8s cubic-bezier(.4,0,.2,1),opacity .4s}
+.hb .refl{position:absolute;bottom:0;font-size:12px;color:var(--hi);font-weight:600;white-space:nowrap;transform:translateX(-50%);transition:left .8s cubic-bezier(.4,0,.2,1)}
+.hb .brk{position:absolute;top:22px;left:-14px;font-family:var(--f-sym);color:var(--ink);font-size:15px}
+.hb.pre .b,.hb.pre .bg,.hb.pre .val,.hb.pre .ref,.hb.pre .refl{transition:none!important}
+.hb.pre .ref,.hb.pre .refl{opacity:0}
+svg{display:block;overflow:visible}
+svg text{fill:var(--ink3);font-family:var(--f-body);font-size:12px}
+svg .gl{stroke:var(--grid);stroke-width:1}
+svg .base{stroke:var(--ink);stroke-width:1}
+svg .ln{fill:none;stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+svg .ln.hi{stroke:var(--hi)} svg .ln.dark{stroke:var(--dark)} svg .ln.ctx{stroke:var(--ctx)}
+svg .pt.hi{fill:var(--hi)} svg .pt.dark{fill:var(--dark)} svg .pt.ctx{fill:var(--ctx)}
+svg .ptring{fill:var(--bg);stroke-width:2}
+svg .lbl{font-weight:700;font-size:13px}
+svg .lbl.ctx{fill:var(--ink2)} svg .lbl.hi{fill:var(--hi)} svg .lbl.dark{fill:var(--dark)}
+svg .ref{stroke:var(--hi);stroke-width:1.5;stroke-dasharray:5 4;fill:none}
+svg .refl{fill:var(--hi);font-weight:600}
+svg .ann{fill:var(--ink);font-size:12.5px}
+svg .sym{font-family:var(--f-sym);fill:var(--ink);font-size:15px}
+svg .trend{stroke:var(--ink2);stroke-width:1.2;stroke-dasharray:4 4;fill:none}
+.sc .dot{transition:transform .5s cubic-bezier(.34,1.56,.64,1),fill .4s,opacity .4s;transform-box:fill-box;transform-origin:center}
+.sc .dot{fill:var(--ctx);opacity:.9}
+.sc .dot.hi{fill:var(--hi);opacity:1}
+.sc .dot.fade{opacity:.35}
+.sc.pre .dot{transform:scale(0);transition:none}
+.sc .dl{fill:var(--ink);font-size:12.5px;font-weight:600}
+.sc .dlv{font-weight:400;fill:var(--ink2)}
+.selfcheck{border-top:1px solid var(--rule);padding-top:14px;font-size:13.5px;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
+.selfcheck h2{font-size:15px;margin:0;color:var(--ink)}
+.selfcheck ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;max-width:110ch}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){:root{--lw:118px;--vw:58px}.multi{grid-template-columns:minmax(0,1fr)}.kpis{gap:18px}.hb{font-size:12.5px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">AI Copilot monitoring · Management view</div>
+    <h1>Four in five staff now use Copilot, and it returns about <span id="hRoi">RM1.56</span> for every ringgit spent</h1>
+    <p class="lede">CGC, 580 Copilot-enabled employees and 200 premium licences across 11 divisions and 93 departments. Monthly data Jan–Oct 2026; latest month is the 30 days to 27 Oct 2026. All figures are synthetic demo data.</p>
+  </header>
+
+  <div class="bar" role="region" aria-label="Filters">
+    <label for="divSel">Division</label>
+    <select id="divSel"><option value="all">All divisions</option></select>
+    <span class="note" id="filterNote">Showing the whole organisation</span>
+    <span class="sp"></span>
+    <button class="replay" id="replay" type="button">↻ Replay animations</button>
+  </div>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="q"><b>1</b> Usage</div><div class="v" id="k1">79.1%</div><div class="l">of employees active in last 30 days</div><div class="c" id="k1c"></div></div>
+    <div class="kpi"><div class="q"><b>2</b> Value</div><div class="v" id="k2">RM46.7k</div><div class="l">estimated productivity value, last 30 days</div><div class="c" id="k2c"></div></div>
+    <div class="kpi"><div class="q"><b>3</b> Cost</div><div class="v" id="k3">RM29.8k</div><div class="l">incremental AI cost, last 30 days (licences + credits)</div><div class="c" id="k3c"></div></div>
+    <div class="kpi"><div class="q"><b>4</b> Governance</div><div class="v" id="k4">1.10</div><div class="l">governance incidents per 1,000 prompts</div><div class="c" id="k4c"></div></div>
+  </div>
+
+  <!-- Q1 -->
+  <section class="q" aria-labelledby="q1">
+    <div class="qhead"><span class="n">1</span><div><h2 id="q1">Are our people actually using AI?</h2>
+      <p>Yes, and the user base is still growing. The remaining gap is about 120 people, mostly one or two per department, so targeted nudges will do more than another broad roll-out.</p></div></div>
+    <div class="grid">
+      <article class="card" data-chart="active">
+        <h3 id="hA"></h3>
+        <p class="sub" id="sA">Monthly active Copilot users, Jan–Oct 2026, number of people</p>
+        <div class="chart" id="cA"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Active = used Copilot at least once in the month</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card" data-chart="adopt">
+        <h3 id="hB"></h3>
+        <p class="sub" id="sB">Employees active in last 30 days, by division, % of headcount</p>
+        <div class="ctl seg" role="group" aria-label="Measure"><button type="button" id="bPct" aria-pressed="true">Share of staff</button><button type="button" id="bCnt" aria-pressed="false">Number of people</button></div>
+        <div class="chart" id="cB"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Grey track in count view = division headcount</p><span class="brand">CGC</span></footer>
+      </article>
+    </div>
+  </section>
+
+  <!-- Q2 -->
+  <section class="q" aria-labelledby="q2">
+    <div class="qhead"><span class="n">2</span><div><h2 id="q2">Where is it creating measurable business value?</h2>
+      <p>Value follows volume: departments that prompt more save more time. Most use is still general office work, so moving teams onto guarantee and financing analysis is the larger prize.</p></div></div>
+    <div class="grid">
+      <article class="card" data-chart="scatter">
+        <h3 id="hC"></h3>
+        <p class="sub">Departments, last 30 days: prompts (horizontal) vs estimated productivity value (vertical), RM</p>
+        <div class="chart" id="cC"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Dashed line = least-squares trend across 93 departments</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card" data-chart="value">
+        <h3 id="hD"></h3>
+        <p class="sub" id="sD">Estimated productivity value by division, last 30 days, RM</p>
+        <div class="ctl seg" role="group" aria-label="Measure"><button type="button" id="bTot" aria-pressed="true">Total</button><button type="button" id="bPer" aria-pressed="false">Per active user</button></div>
+        <div class="chart" id="cD"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Value = estimated hours saved × assumed hourly cost</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card span2" data-chart="usecase">
+        <h3>Drafting and summarising dominate; core guarantee and financing analysis is only 11% of use</h3>
+        <p class="sub">Copilot interactions by use-case category, last 30 days, % of all interactions</p>
+        <div class="chart" id="cE"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Organisation-wide only; categories are not broken down by division. Highlighted = CGC core business work</p><span class="brand">CGC</span></footer>
+      </article>
+    </div>
+  </section>
+
+  <!-- Q3 -->
+  <section class="q" aria-labelledby="q3">
+    <div class="qhead"><span class="n">3</span><div><h2 id="q3">What is it costing and consuming?</h2>
+      <p>Almost all of the cost is the fixed premium-licence fee; credits add under 3% and tokens carry no separate charge. So every extra hour saved goes straight to the return, while rising consumption is a budget signal rather than a problem today.</p></div></div>
+    <div class="grid">
+      <article class="card" data-chart="roi">
+        <h3 id="hF"></h3>
+        <p class="sub" id="sF">Estimated productivity value vs incremental AI cost*, per month, RM thousand</p>
+        <div class="chart" id="cF"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Cost = premium licences × RM145 + credits × RM0.12 (demo unit costs)<span id="fBrk">. Axis starts at RM20k</span></p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card" data-chart="workload">
+        <h3>Copilot Chat and Teams carry almost half of all interactions; agents just 3%</h3>
+        <p class="sub">Copilot interactions by workload, last 30 days, % of all interactions</p>
+        <div class="chart" id="cH"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Organisation-wide only; not broken down by division</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card span2" data-chart="consume">
+        <h3 id="hG"></h3>
+        <p class="sub" id="sG">Jan–Oct 2026, per month</p>
+        <div class="multi">
+          <div><h4>Credits consumed</h4><p class="sub">Credits per month*</p><div class="chart" id="cG1"></div></div>
+          <div><h4>Prompts per active user</h4><p class="sub">Prompts per month ÷ active users</p><div class="chart" id="cG2"></div></div>
+        </div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*At the demo unit cost of RM0.12, October's credits cost about RM<span id="crCost">846</span></p><span class="brand">CGC</span></footer>
+      </article>
+
+      <article class="card span2" data-chart="tokens">
+        <h3 id="hT"></h3>
+        <p class="sub" id="sT">Jan–Oct 2026, per month</p>
+        <div class="multi">
+          <div><h4>Tokens processed</h4><p class="sub">Tokens per month, millions; total vs output*</p><div class="chart" id="cT1"></div></div>
+          <div><h4>Tokens per prompt</h4><p class="sub">Input + output tokens ÷ prompts, per month</p><div class="chart" id="cT2"></div></div>
+        </div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Total = input (prompt and grounding context) + output (generated text). Tokens carry no separate charge in the demo licence model; billing is via premium seats and credits</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card span2" data-chart="tokdiv">
+        <h3 id="hU"></h3>
+        <p class="sub" id="sU">Tokens processed by division, last 30 days, millions</p>
+        <div class="ctl seg" role="group" aria-label="Measure"><button type="button" id="bTokT" aria-pressed="true">Total</button><button type="button" id="bTokP" aria-pressed="false">Per active user</button></div>
+        <div class="chart" id="cU"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Share of organisation tokens shown beside each total</p><span class="brand">CGC</span></footer>
+      </article>
+    </div>
+  </section>
+
+  <!-- Q4 -->
+  <section class="q" aria-labelledby="q4">
+    <div class="qhead"><span class="n">4</span><div><h2 id="q4">Is usage governed, secure and appropriately licensed?</h2>
+      <p>Mostly. Incidents remain rare, but the rate climbed through mid-year as usage grew and sensitive data is the leading high-severity trigger. On licences, about a fifth of premium seats are idle and could be reassigned.</p></div></div>
+    <div class="grid">
+      <article class="card" data-chart="incrate">
+        <h3 id="hI"></h3>
+        <p class="sub" id="sI">Governance incidents per 1,000 prompts, per month</p>
+        <div class="chart" id="cI"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Small divisions have few incidents, so their monthly rate is volatile</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card" data-chart="events">
+        <h3>Sensitive-data detections are the largest high-severity risk</h3>
+        <p class="sub">Policy events by type, last 30 days, number of events; shade = severity</p>
+        <div class="chart" id="cJ" style="--vw:100px"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Policy events (48) are logged separately from governance incidents (30). Organisation-wide only</p><span class="brand">CGC</span></footer>
+      </article>
+      <article class="card span2" data-chart="licence">
+        <h3 id="hK"></h3>
+        <p class="sub">Premium licences active in last 30 days, by division, % of assigned seats; idle seats labelled</p>
+        <div class="chart" id="cK" style="--vw:132px"></div>
+        <footer><p>Source: CGC AI Copilot monitoring dataset (synthetic)<br>*Axis starts at 40%. Idle seat cost at the demo price of RM145 per seat per month</p><span class="brand">CGC</span></footer>
+      </article>
+    </div>
+  </section>
+
+  <aside class="selfcheck" aria-labelledby="sc">
+    <h2 id="sc">How this dashboard was built</h2>
+    <ul>
+      <li>Change over time uses line charts (active users, value vs cost, credits, tokens, incident rate). Category comparisons use sorted horizontal bars. Department value uses a scatter because the story is a relationship. Licence utilisation uses a dot plot because the differences sit close to an 81% benchmark.</li>
+      <li>Red always marks the element the headline is about; grey is context. Severity in the events chart uses three shades of the same red, darkest for high.</li>
+      <li>Two axes are truncated (value vs cost from RM20k, licence utilisation from 40%), each marked with ≁ and footnoted. All bar charts start at zero.</li>
+      <li>The division filter recalculates every chart that has division data. Use-case, workload and policy-event charts are organisation-wide in the source, so they stay fixed and say so.</li>
+      <li>Value, cost and ROI rest on the dataset's demo assumptions: RM145 per premium seat per month and RM0.12 per credit; Copilot access for all staff is assumed covered by the existing E5 licence.</li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+const D = {"months":["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10"],"depts":[{"id":"DEPT-001","div":"Business Division","name":"Branch Management","head":8,"prem":3,"active":7,"premActive":2,"prompts":614,"value":1399.81,"hours":28.1,"inc":1,"credits":185.9,"never":0,"tokens":751107},{"id":"DEPT-002","div":"Business Division","name":"FIs (Conventional)","head":8,"prem":3,"active":7,"premActive":3,"prompts":257,"value":468.1,"hours":11.7,"inc":0,"credits":59.9,"never":0,"tokens":307613},{"id":"DEPT-003","div":"Business Division","name":"Islamic FIs / DFIs","head":5,"prem":2,"active":4,"premActive":2,"prompts":184,"value":223.88,"hours":5.7,"inc":0,"credits":54.8,"never":0,"tokens":195080},{"id":"DEPT-004","div":"Business Division","name":"Portfolio Excellence","head":5,"prem":2,"active":4,"premActive":2,"prompts":218,"value":564.92,"hours":9.8,"inc":0,"credits":38.0,"never":0,"tokens":238139},{"id":"DEPT-005","div":"Business Division","name":"Business Development & Product Management","head":6,"prem":3,"active":5,"premActive":2,"prompts":177,"value":225.22,"hours":6.2,"inc":0,"credits":53.7,"never":0,"tokens":142456},{"id":"DEPT-006","div":"Business Division","name":"Guarantee Product","head":8,"prem":3,"active":6,"premActive":2,"prompts":483,"value":946.91,"hours":21.6,"inc":1,"credits":125.7,"never":1,"tokens":437600},{"id":"DEPT-007","div":"Business Division","name":"Product Innovation","head":6,"prem":3,"active":5,"premActive":3,"prompts":178,"value":270.11,"hours":4.7,"inc":0,"credits":38.9,"never":0,"tokens":134584},{"id":"DEPT-008","div":"Business Division","name":"Contract Financing","head":8,"prem":3,"active":7,"premActive":2,"prompts":581,"value":830.7,"hours":16.5,"inc":0,"credits":199.5,"never":0,"tokens":508478},{"id":"DEPT-009","div":"Business Division","name":"Product Solutions","head":5,"prem":2,"active":4,"premActive":2,"prompts":162,"value":287.99,"hours":6.4,"inc":0,"credits":25.7,"never":0,"tokens":194322},{"id":"DEPT-010","div":"Business Division","name":"Product Development & Management","head":6,"prem":3,"active":5,"premActive":2,"prompts":239,"value":451.32,"hours":11.3,"inc":0,"credits":60.0,"never":0,"tokens":166914},{"id":"DEPT-011","div":"Business Division","name":"Financial Guarantee","head":8,"prem":3,"active":6,"premActive":2,"prompts":360,"value":268.38,"hours":7.8,"inc":1,"credits":121.5,"never":1,"tokens":280600},{"id":"DEPT-012","div":"Business Division","name":"SME Advisory & Strategic Alliance","head":7,"prem":3,"active":6,"premActive":2,"prompts":523,"value":1488.9,"hours":28.7,"inc":1,"credits":169.0,"never":0,"tokens":533065},{"id":"DEPT-013","div":"Business Division","name":"Strategic Alliances & Partnerships","head":5,"prem":2,"active":4,"premActive":2,"prompts":219,"value":491.74,"hours":9.8,"inc":1,"credits":76.0,"never":0,"tokens":223583},{"id":"DEPT-014","div":"Business Division","name":"Client Service Centre","head":5,"prem":2,"active":4,"premActive":2,"prompts":170,"value":261.16,"hours":6.4,"inc":0,"credits":38.7,"never":0,"tokens":191045},{"id":"DEPT-015","div":"Business Division","name":"Financial Advisory","head":7,"prem":3,"active":6,"premActive":3,"prompts":214,"value":355.32,"hours":10.4,"inc":0,"credits":31.7,"never":0,"tokens":248546},{"id":"DEPT-016","div":"Business Division","name":"Business Growth Management","head":6,"prem":3,"active":5,"premActive":2,"prompts":319,"value":677.04,"hours":15.5,"inc":1,"credits":99.0,"never":0,"tokens":309355},{"id":"DEPT-017","div":"Business Division","name":"Bumiputera Development","head":8,"prem":3,"active":6,"premActive":2,"prompts":249,"value":334.58,"hours":8.7,"inc":0,"credits":48.0,"never":1,"tokens":213097},{"id":"DEPT-018","div":"Business Division","name":"Business Advisory","head":7,"prem":3,"active":6,"premActive":2,"prompts":523,"value":634.51,"hours":18.7,"inc":1,"credits":162.6,"never":0,"tokens":557306},{"id":"DEPT-019","div":"Finance, Transformation and Operations (FTO)","name":"Credit","head":9,"prem":4,"active":7,"premActive":3,"prompts":614,"value":935.22,"hours":27.7,"inc":1,"credits":126.4,"never":1,"tokens":372850},{"id":"DEPT-020","div":"Finance, Transformation and Operations (FTO)","name":"Financing Evaluation Department","head":9,"prem":3,"active":7,"premActive":2,"prompts":445,"value":1151.23,"hours":21.8,"inc":0,"credits":57.6,"never":1,"tokens":364355},{"id":"DEPT-021","div":"Finance, Transformation and Operations (FTO)","name":"Guarantee Evaluation Department","head":6,"prem":2,"active":4,"premActive":1,"prompts":288,"value":432.09,"hours":7.8,"inc":0,"credits":85.1,"never":1,"tokens":276884},{"id":"DEPT-022","div":"Finance, Transformation and Operations (FTO)","name":"Credit Admin & Advisory","head":9,"prem":4,"active":7,"premActive":3,"prompts":413,"value":695.15,"hours":19.3,"inc":0,"credits":147.2,"never":1,"tokens":520825},{"id":"DEPT-023","div":"Finance, Transformation and Operations (FTO)","name":"Operations","head":6,"prem":2,"active":5,"premActive":1,"prompts":251,"value":322.82,"hours":7.7,"inc":0,"credits":78.2,"never":0,"tokens":241324},{"id":"DEPT-024","div":"Finance, Transformation and Operations (FTO)","name":"Billing Management","head":7,"prem":3,"active":6,"premActive":2,"prompts":457,"value":475.86,"hours":14.5,"inc":0,"credits":121.0,"never":0,"tokens":526838},{"id":"DEPT-025","div":"Finance, Transformation and Operations (FTO)","name":"Portfolio Guarantee","head":6,"prem":2,"active":5,"premActive":2,"prompts":288,"value":625.21,"hours":14.6,"inc":1,"credits":40.1,"never":0,"tokens":361158},{"id":"DEPT-026","div":"Finance, Transformation and Operations (FTO)","name":"Non-Portfolio Guarantee","head":7,"prem":3,"active":6,"premActive":3,"prompts":291,"value":505.34,"hours":8.8,"inc":0,"credits":78.3,"never":0,"tokens":238295},{"id":"DEPT-027","div":"Finance, Transformation and Operations (FTO)","name":"Billing Admin","head":9,"prem":3,"active":6,"premActive":2,"prompts":351,"value":532.05,"hours":16.3,"inc":0,"credits":55.2,"never":1,"tokens":234525},{"id":"DEPT-028","div":"Finance, Transformation and Operations (FTO)","name":"Financing Operations & System","head":8,"prem":3,"active":7,"premActive":3,"prompts":270,"value":496.78,"hours":14.3,"inc":1,"credits":79.6,"never":0,"tokens":224627},{"id":"DEPT-029","div":"Finance, Transformation and Operations (FTO)","name":"Documentations & Disbursement","head":7,"prem":3,"active":6,"premActive":3,"prompts":430,"value":826.87,"hours":17.1,"inc":1,"credits":130.8,"never":0,"tokens":415838},{"id":"DEPT-030","div":"Finance, Transformation and Operations (FTO)","name":"Financing Monitoring & Rehabilitation","head":7,"prem":3,"active":5,"premActive":2,"prompts":292,"value":576.17,"hours":14.6,"inc":0,"credits":84.3,"never":1,"tokens":249702},{"id":"DEPT-031","div":"Finance, Transformation and Operations (FTO)","name":"Guarantee Monitoring & Reporting","head":9,"prem":3,"active":8,"premActive":3,"prompts":379,"value":894.43,"hours":20.6,"inc":1,"credits":61.8,"never":0,"tokens":429067},{"id":"DEPT-032","div":"Finance, Transformation and Operations (FTO)","name":"Guarantee & Financing Recovery","head":6,"prem":2,"active":4,"premActive":1,"prompts":343,"value":398.05,"hours":9.7,"inc":0,"credits":89.7,"never":1,"tokens":437100},{"id":"DEPT-033","div":"Finance, Transformation and Operations (FTO)","name":"Claims Subrogation & Recovery","head":7,"prem":3,"active":6,"premActive":2,"prompts":289,"value":630.4,"hours":11.1,"inc":0,"credits":86.8,"never":0,"tokens":207156},{"id":"DEPT-034","div":"Finance, Transformation and Operations (FTO)","name":"Claims","head":9,"prem":3,"active":7,"premActive":3,"prompts":607,"value":1737.21,"hours":30.5,"inc":2,"credits":158.7,"never":1,"tokens":471227},{"id":"DEPT-035","div":"Finance, Transformation and Operations (FTO)","name":"Transformation Office","head":7,"prem":3,"active":6,"premActive":3,"prompts":321,"value":371.55,"hours":7.7,"inc":0,"credits":101.4,"never":0,"tokens":385960},{"id":"DEPT-036","div":"Finance, Transformation and Operations (FTO)","name":"Process Excellence","head":9,"prem":4,"active":8,"premActive":4,"prompts":305,"value":502.97,"hours":8.9,"inc":1,"credits":95.2,"never":0,"tokens":284080},{"id":"DEPT-037","div":"Finance, Transformation and Operations (FTO)","name":"Process Automation","head":6,"prem":2,"active":6,"premActive":2,"prompts":422,"value":1111.26,"hours":23.6,"inc":1,"credits":117.7,"never":0,"tokens":376413},{"id":"DEPT-038","div":"Finance, Transformation and Operations (FTO)","name":"Functional Analysis","head":8,"prem":3,"active":7,"premActive":2,"prompts":360,"value":411.19,"hours":11.4,"inc":1,"credits":66.6,"never":0,"tokens":450277},{"id":"DEPT-039","div":"Risk Management","name":"Risk Policy & Assessment","head":5,"prem":2,"active":4,"premActive":2,"prompts":318,"value":606.68,"hours":14.5,"inc":1,"credits":108.3,"never":0,"tokens":250625},{"id":"DEPT-040","div":"Risk Management","name":"Credit Risk Strategy & Insights","head":5,"prem":2,"active":4,"premActive":2,"prompts":345,"value":590.89,"hours":10.5,"inc":0,"credits":106.3,"never":0,"tokens":357398},{"id":"DEPT-041","div":"Risk Management","name":"Portfolio Risk Analytics & Reporting","head":7,"prem":3,"active":5,"premActive":2,"prompts":203,"value":388.29,"hours":8.2,"inc":0,"credits":55.8,"never":1,"tokens":210796},{"id":"DEPT-042","div":"Risk Management","name":"Enterprise, Actuarial & Market Risk","head":6,"prem":2,"active":4,"premActive":1,"prompts":205,"value":263.33,"hours":4.7,"inc":0,"credits":75.7,"never":1,"tokens":236207},{"id":"DEPT-043","div":"Risk Management","name":"Actuarial","head":7,"prem":3,"active":5,"premActive":2,"prompts":282,"value":225.39,"hours":6.9,"inc":0,"credits":75.8,"never":1,"tokens":262904},{"id":"DEPT-044","div":"Risk Management","name":"Investment Middle Office","head":4,"prem":1,"active":3,"premActive":1,"prompts":175,"value":317.47,"hours":7.2,"inc":0,"credits":52.7,"never":0,"tokens":172352},{"id":"DEPT-045","div":"Risk Management","name":"Operational, Technology, Cyber Risk & Resilience Management","head":4,"prem":1,"active":3,"premActive":1,"prompts":228,"value":405.97,"hours":7.5,"inc":0,"credits":55.5,"never":0,"tokens":158033},{"id":"DEPT-046","div":"Risk Management","name":"Operational Advisory & Shariah Risk","head":7,"prem":3,"active":6,"premActive":3,"prompts":304,"value":545.55,"hours":14.8,"inc":0,"credits":57.0,"never":0,"tokens":328479},{"id":"DEPT-047","div":"Risk Management","name":"Operational Governance, Assurance & Analytics","head":6,"prem":2,"active":5,"premActive":2,"prompts":437,"value":544.12,"hours":10.9,"inc":0,"credits":81.5,"never":0,"tokens":408193},{"id":"DEPT-048","div":"Risk Management","name":"Technology & Cyber Risk","head":7,"prem":2,"active":5,"premActive":1,"prompts":406,"value":613.32,"hours":10.9,"inc":1,"credits":86.0,"never":1,"tokens":435403},{"id":"DEPT-049","div":"Compliance & Integrity","name":"Regulatory Compliance","head":8,"prem":3,"active":7,"premActive":2,"prompts":496,"value":880.82,"hours":21.8,"inc":0,"credits":91.0,"never":0,"tokens":513084},{"id":"DEPT-050","div":"Compliance & Integrity","name":"Shariah Compliance","head":8,"prem":3,"active":7,"premActive":3,"prompts":241,"value":514.72,"hours":11.1,"inc":0,"credits":49.4,"never":0,"tokens":246255},{"id":"DEPT-051","div":"Compliance & Integrity","name":"Integrity & Governance","head":6,"prem":2,"active":4,"premActive":1,"prompts":145,"value":233.22,"hours":5.1,"inc":0,"credits":19.4,"never":1,"tokens":121304},{"id":"DEPT-052","div":"Compliance & Integrity","name":"Data Privacy","head":5,"prem":1,"active":3,"premActive":1,"prompts":139,"value":200.19,"hours":4.2,"inc":0,"credits":34.7,"never":1,"tokens":133895},{"id":"DEPT-053","div":"Information Technology","name":"Enterprise Architecture & Strategy","head":6,"prem":2,"active":4,"premActive":1,"prompts":269,"value":481.14,"hours":11.6,"inc":0,"credits":64.3,"never":1,"tokens":268500},{"id":"DEPT-054","div":"Information Technology","name":"IT Projects & Functional","head":7,"prem":2,"active":6,"premActive":2,"prompts":235,"value":534.4,"hours":10.4,"inc":1,"credits":75.2,"never":0,"tokens":270758},{"id":"DEPT-055","div":"Information Technology","name":"IT Applications","head":6,"prem":2,"active":5,"premActive":2,"prompts":356,"value":656.45,"hours":11.9,"inc":1,"credits":87.3,"never":0,"tokens":415280},{"id":"DEPT-056","div":"Information Technology","name":"Applications R&D","head":7,"prem":2,"active":6,"premActive":2,"prompts":389,"value":341.03,"hours":8.6,"inc":1,"credits":105.7,"never":0,"tokens":445713},{"id":"DEPT-057","div":"Information Technology","name":"IT Infrastructure","head":8,"prem":2,"active":6,"premActive":1,"prompts":263,"value":389.09,"hours":7.2,"inc":0,"credits":98.2,"never":1,"tokens":268795},{"id":"DEPT-058","div":"Information Technology","name":"IT Governance & Security","head":8,"prem":2,"active":6,"premActive":1,"prompts":339,"value":430.27,"hours":9.4,"inc":0,"credits":59.5,"never":1,"tokens":373707},{"id":"DEPT-059","div":"Information Technology","name":"Data Engineering","head":10,"prem":3,"active":8,"premActive":3,"prompts":448,"value":571.6,"hours":14.7,"inc":1,"credits":131.5,"never":1,"tokens":476788},{"id":"DEPT-060","div":"Information Technology","name":"IT Project Management","head":6,"prem":2,"active":4,"premActive":1,"prompts":314,"value":293.12,"hours":8.6,"inc":0,"credits":67.7,"never":1,"tokens":387856},{"id":"DEPT-061","div":"Finance & Procurement","name":"Finance","head":7,"prem":2,"active":5,"premActive":1,"prompts":242,"value":328.58,"hours":7.6,"inc":0,"credits":81.5,"never":1,"tokens":223377},{"id":"DEPT-062","div":"Finance & Procurement","name":"Financial Performance","head":6,"prem":2,"active":5,"premActive":1,"prompts":263,"value":401.96,"hours":8.8,"inc":0,"credits":59.3,"never":0,"tokens":179343},{"id":"DEPT-063","div":"Finance & Procurement","name":"Financial Strategy & Performance","head":7,"prem":2,"active":6,"premActive":2,"prompts":212,"value":262.89,"hours":7.5,"inc":0,"credits":44.7,"never":0,"tokens":203376},{"id":"DEPT-064","div":"Finance & Procurement","name":"Strategic Finance","head":7,"prem":2,"active":5,"premActive":1,"prompts":309,"value":606.4,"hours":11.6,"inc":0,"credits":77.5,"never":1,"tokens":218573},{"id":"DEPT-065","div":"Finance & Procurement","name":"Advisory & Governance","head":4,"prem":1,"active":3,"premActive":1,"prompts":136,"value":192.02,"hours":5.6,"inc":0,"credits":20.0,"never":0,"tokens":131954},{"id":"DEPT-066","div":"Finance & Procurement","name":"Finance Operations & Projects","head":5,"prem":1,"active":4,"premActive":1,"prompts":239,"value":359.8,"hours":6.3,"inc":0,"credits":62.5,"never":0,"tokens":288222},{"id":"DEPT-067","div":"Finance & Procurement","name":"Procurement","head":5,"prem":1,"active":4,"premActive":1,"prompts":160,"value":341.42,"hours":7.6,"inc":0,"credits":24.7,"never":0,"tokens":183147},{"id":"DEPT-068","div":"Finance & Procurement","name":"Contract & Vendor Management","head":5,"prem":1,"active":4,"premActive":1,"prompts":231,"value":390.91,"hours":11.2,"inc":0,"credits":72.6,"never":0,"tokens":239143},{"id":"DEPT-069","div":"Internal Audit","name":"Credit & Operations Audit","head":6,"prem":2,"active":4,"premActive":1,"prompts":278,"value":458.54,"hours":14.0,"inc":0,"credits":62.5,"never":1,"tokens":279709},{"id":"DEPT-070","div":"Internal Audit","name":"IT & Data Analytic Audit","head":4,"prem":1,"active":3,"premActive":1,"prompts":145,"value":164.69,"hours":4.1,"inc":0,"credits":55.5,"never":0,"tokens":136959},{"id":"DEPT-071","div":"Internal Audit","name":"Data Analytics Audit","head":6,"prem":2,"active":5,"premActive":1,"prompts":388,"value":876.33,"hours":20.5,"inc":0,"credits":134.1,"never":0,"tokens":495734},{"id":"DEPT-072","div":"Internal Audit","name":"Head Office & Special Audit","head":6,"prem":2,"active":5,"premActive":2,"prompts":407,"value":646.22,"hours":15.0,"inc":1,"credits":96.9,"never":0,"tokens":443958},{"id":"DEPT-073","div":"Legal & Company Secretarial","name":"Legal","head":10,"prem":4,"active":8,"premActive":3,"prompts":416,"value":471.75,"hours":9.5,"inc":1,"credits":125.7,"never":1,"tokens":475393},{"id":"DEPT-074","div":"Legal & Company Secretarial","name":"Company Secretarial","head":6,"prem":2,"active":5,"premActive":2,"prompts":380,"value":768.77,"hours":18.6,"inc":0,"credits":98.7,"never":0,"tokens":372846},{"id":"DEPT-075","div":"HR Management & Administration","name":"Organisational Effectiveness & Rewards","head":3,"prem":1,"active":2,"premActive":1,"prompts":165,"value":287.85,"hours":8.4,"inc":0,"credits":23.5,"never":0,"tokens":180184},{"id":"DEPT-076","div":"HR Management & Administration","name":"Organisational Design","head":4,"prem":1,"active":3,"premActive":1,"prompts":226,"value":374.52,"hours":9.0,"inc":1,"credits":57.8,"never":0,"tokens":256931},{"id":"DEPT-077","div":"HR Management & Administration","name":"Performance & Rewards","head":3,"prem":1,"active":2,"premActive":1,"prompts":159,"value":416.64,"hours":8.4,"inc":0,"credits":34.3,"never":0,"tokens":133262},{"id":"DEPT-078","div":"HR Management & Administration","name":"HR Services","head":5,"prem":1,"active":4,"premActive":1,"prompts":244,"value":361.66,"hours":10.6,"inc":0,"credits":73.9,"never":0,"tokens":231300},{"id":"DEPT-079","div":"HR Management & Administration","name":"Talent Acquisition","head":3,"prem":1,"active":2,"premActive":1,"prompts":120,"value":140.42,"hours":3.6,"inc":0,"credits":37.9,"never":0,"tokens":125303},{"id":"DEPT-080","div":"HR Management & Administration","name":"Talent Development & Engagement","head":5,"prem":1,"active":4,"premActive":1,"prompts":202,"value":355.22,"hours":10.4,"inc":0,"credits":70.8,"never":0,"tokens":199554},{"id":"DEPT-081","div":"HR Management & Administration","name":"Learning & Capability Building","head":5,"prem":1,"active":4,"premActive":1,"prompts":227,"value":397.01,"hours":7.9,"inc":0,"credits":61.9,"never":0,"tokens":204778},{"id":"DEPT-082","div":"HR Management & Administration","name":"Culture & Engagement","head":5,"prem":1,"active":4,"premActive":1,"prompts":149,"value":318.75,"hours":7.4,"inc":0,"credits":31.1,"never":0,"tokens":147601},{"id":"DEPT-083","div":"HR Management & Administration","name":"Facility & Administration Services","head":5,"prem":1,"active":4,"premActive":1,"prompts":226,"value":340.34,"hours":7.3,"inc":1,"credits":33.7,"never":0,"tokens":236728},{"id":"DEPT-084","div":"Corporate Strategy & Development","name":"Strategic Management & Communications","head":6,"prem":2,"active":5,"premActive":2,"prompts":176,"value":205.88,"hours":5.5,"inc":0,"credits":48.9,"never":0,"tokens":194617},{"id":"DEPT-085","div":"Corporate Strategy & Development","name":"Strategic Planning","head":4,"prem":1,"active":3,"premActive":1,"prompts":234,"value":333.47,"hours":6.2,"inc":1,"credits":35.3,"never":0,"tokens":236981},{"id":"DEPT-086","div":"Corporate Strategy & Development","name":"Corporate Strategy","head":4,"prem":1,"active":3,"premActive":1,"prompts":258,"value":372.37,"hours":6.5,"inc":0,"credits":44.0,"never":0,"tokens":259486},{"id":"DEPT-087","div":"Corporate Strategy & Development","name":"Strategic Programme Management","head":4,"prem":1,"active":3,"premActive":1,"prompts":223,"value":573.84,"hours":10.5,"inc":0,"credits":61.0,"never":0,"tokens":237513},{"id":"DEPT-088","div":"Corporate Strategy & Development","name":"Strategic Data","head":4,"prem":1,"active":3,"premActive":1,"prompts":238,"value":185.3,"hours":5.5,"inc":0,"credits":57.0,"never":0,"tokens":246590},{"id":"DEPT-089","div":"Corporate Strategy & Development","name":"Corporate Sustainability","head":5,"prem":1,"active":4,"premActive":1,"prompts":239,"value":263.49,"hours":6.4,"inc":1,"credits":76.5,"never":0,"tokens":261650},{"id":"DEPT-090","div":"Corporate Strategy & Development","name":"Corporate Performance","head":3,"prem":1,"active":2,"premActive":1,"prompts":126,"value":342.13,"hours":6.6,"inc":0,"credits":30.0,"never":0,"tokens":158260},{"id":"DEPT-091","div":"Corporate Strategy & Development","name":"Events, Branding & Creative Management","head":4,"prem":1,"active":3,"premActive":1,"prompts":230,"value":461.84,"hours":11.8,"inc":0,"credits":83.6,"never":0,"tokens":185893},{"id":"DEPT-092","div":"Corporate Strategy & Development","name":"PR & Media / Social & Digital Media / CSR","head":5,"prem":1,"active":3,"premActive":1,"prompts":202,"value":338.69,"hours":8.1,"inc":0,"credits":35.4,"never":1,"tokens":226713},{"id":"DEPT-093","div":"Investment","name":"Investment","head":7,"prem":2,"active":5,"premActive":1,"prompts":313,"value":472.3,"hours":11.1,"inc":1,"credits":52.4,"never":1,"tokens":273483}],"m":{"DEPT-001":[[5,288,273605,45.1,13.2,536.39,1,177232],[4,217,256366,49.5,8.3,378.05,0,160533],[6,270,281654,53.4,11.3,549.05,1,216757],[5,236,233085,46.1,7.5,337.05,0,172005],[5,307,354501,67.0,14.9,502.68,0,232632],[5,248,305067,67.6,6.9,255.44,0,208379],[6,322,251914,115.4,14.1,557.65,0,155205],[6,211,251790,48.0,6.7,245.42,0,169362],[6,332,374197,105.9,10.7,451.51,1,231607],[7,614,751107,185.9,28.1,1399.81,1,497779]],"DEPT-002":[[5,276,255270,54.6,12.9,692.37,1,196172],[4,234,207930,32.8,8.4,475.48,0,147110],[5,263,250695,46.4,5.5,304.79,1,170941],[6,414,421329,93.0,8.7,418.62,0,281613],[5,346,286200,111.8,9.7,507.18,0,197542],[5,254,262210,87.8,12.4,584.84,0,154891],[6,240,290474,78.3,9.2,491.38,0,189159],[6,210,135641,61.5,6.5,245.2,0,92927],[6,349,275356,109.7,16.8,736.43,0,167198],[7,257,307613,59.9,11.7,468.1,0,230336]],"DEPT-003":[[3,189,198859,26.3,7.8,394.87,0,113833],[3,114,99863,32.4,3.4,145.59,0,53194],[3,164,190651,44.0,6.1,249.89,0,123784],[3,177,215154,30.1,7.6,274.22,0,137377],[4,230,221782,38.2,7.6,409.45,1,113949],[3,207,220126,56.4,4.7,200.82,0,159941],[3,226,265869,84.6,5.9,336.24,0,196070],[3,245,246347,68.1,11.8,548.26,0,149773],[4,313,289468,85.7,11.2,379.05,1,223004],[4,184,195080,54.8,5.7,223.88,0,141155]],"DEPT-004":[[3,99,75720,26.9,4.5,149.61,0,48122],[3,162,147140,29.7,4.0,176.56,0,113374],[3,123,118292,24.1,4.1,199.58,0,85809],[3,161,161054,26.5,3.6,129.43,0,113230],[3,173,190210,63.2,5.9,230.96,0,104543],[3,113,84595,21.4,2.7,136.1,0,49874],[3,228,209134,38.9,4.9,169.17,0,132688],[4,266,255417,56.4,7.2,296.33,1,146266],[4,164,128411,49.5,4.8,199.79,0,85357],[4,218,238139,38.0,9.8,564.92,0,184971]],"DEPT-005":[[3,180,225081,29.9,4.3,206.35,0,150972],[4,287,299493,47.3,12.8,582.67,1,162752],[3,193,229293,36.5,8.4,429.07,0,150729],[4,253,283620,59.2,11.9,431.82,0,188046],[4,240,326166,76.7,5.2,229.65,1,206406],[5,248,198155,38.2,13.1,551.12,0,118338],[4,257,309923,78.8,10.7,382.57,0,188867],[4,134,112902,19.0,5.0,256.92,0,75845],[5,254,238638,72.9,10.6,539.92,0,142546],[5,177,142456,53.7,6.2,225.22,0,83349]],"DEPT-006":[[5,172,205505,49.6,7.9,339.69,0,139388],[4,139,169603,31.6,3.7,126.16,0,113582],[5,287,327216,78.5,12.7,468.49,0,247524],[6,240,183979,55.5,7.2,377.07,0,112420],[5,203,161573,58.6,9.8,520.42,0,114915],[6,231,219634,45.6,10.4,562.93,0,138834],[6,311,387696,94.1,8.1,280.11,0,255376],[6,246,227391,40.7,6.6,263.18,0,139972],[7,538,556655,111.6,13.1,583.99,0,317250],[6,483,437600,125.7,21.6,946.91,1,224833]],"DEPT-007":[[3,167,163916,58.3,6.3,355.16,0,109037],[3,108,73668,18.5,4.3,175.93,0,49033],[4,289,292852,58.6,12.3,465.39,0,160107],[3,215,167891,36.6,10.4,368.34,0,115238],[4,305,346705,93.9,9.1,515.8,0,260196],[4,228,145772,33.0,5.5,229.46,0,97760],[5,274,261703,42.2,13.2,707.26,0,200848],[5,283,232156,88.6,6.5,261.23,1,123196],[5,340,428316,108.8,8.2,420.85,1,285990],[5,178,134584,38.9,4.7,270.11,0,80642]],"DEPT-008":[[5,264,223655,89.8,12.3,697.83,0,165402],[5,348,364157,63.2,10.2,344.93,0,263072],[5,147,162999,48.8,6.1,254.33,0,104200],[5,369,341403,60.6,19.7,902.56,0,221447],[5,162,212641,55.5,4.3,167.74,0,134831],[5,335,347137,91.2,15.7,542.78,1,195260],[6,246,202014,56.8,9.1,415.54,1,149689],[7,241,301378,83.6,9.0,390.99,0,181767],[6,314,319464,104.9,13.7,631.24,1,237695],[7,581,508478,199.5,16.5,830.7,0,382019]],"DEPT-009":[[3,94,104450,13.5,4.3,192.23,0,74019],[3,177,159739,28.1,8.9,348.33,0,122535],[3,215,184945,70.1,5.9,195.17,0,123850],[3,94,84684,22.6,3.8,159.79,0,56283],[4,155,125788,21.7,6.2,262.78,0,79761],[3,128,140080,27.1,3.4,150.13,0,77272],[3,243,264151,72.9,7.4,276.06,0,182294],[4,257,257912,61.3,11.2,582.51,0,174894],[4,143,114803,33.1,3.0,167.97,0,71276],[4,162,194322,25.7,6.4,287.99,0,140626]],"DEPT-010":[[3,93,105695,31.4,2.4,90.34,0,71129],[4,246,254784,62.5,5.9,226.26,0,185616],[4,172,161427,37.5,8.1,327.46,0,87767],[4,286,267177,81.1,8.3,456.86,0,153214],[4,171,178815,37.0,6.1,299.24,0,121044],[4,233,291995,43.9,8.0,390.37,0,186454],[5,403,345529,86.8,12.9,444.75,1,236460],[4,216,179036,35.1,9.5,438.0,0,101854],[4,246,221032,50.2,8.6,316.89,0,153226],[5,239,166914,60.0,11.3,451.32,0,110865]],"DEPT-011":[[4,237,263737,36.7,10.4,575.99,0,209609],[5,339,343653,50.6,13.3,455.76,1,242027],[4,142,102582,41.8,4.3,167.09,0,67871],[5,157,142976,49.3,4.4,146.48,0,98863],[5,345,336601,114.9,13.9,485.89,1,245313],[6,423,353387,144.0,21.1,716.15,1,196496],[6,418,481976,73.1,10.2,452.87,0,339182],[6,230,253375,33.7,4.6,178.24,1,151014],[6,330,316512,48.1,15.5,783.7,1,192406],[6,360,280600,121.5,7.8,268.38,1,193609]],"DEPT-012":[[4,112,85145,26.4,4.1,199.59,0,61351],[5,241,251226,53.1,7.4,337.91,0,172910],[5,364,372074,87.1,8.8,472.83,0,236667],[5,342,302128,108.3,15.4,599.18,0,177891],[5,344,369734,86.7,16.7,806.73,1,248002],[5,302,271911,63.8,13.6,757.07,0,184755],[6,473,416229,84.0,10.4,480.5,0,242937],[5,207,211566,36.8,5.2,220.75,0,133939],[5,328,337850,100.9,8.5,345.59,1,218006],[6,523,533065,169.0,28.7,1488.9,1,329543]],"DEPT-013":[[3,99,99252,23.6,4.4,180.11,0,66317],[3,133,131712,49.0,5.2,172.71,0,86178],[3,158,113553,53.1,3.9,179.6,0,77984],[3,231,167326,72.0,5.3,201.15,0,96108],[3,205,205507,69.2,9.8,405.49,1,162887],[4,320,267631,61.7,11.6,458.24,0,153606],[4,251,234957,68.7,8.3,453.55,1,125615],[3,100,124403,23.1,5.2,250.19,0,81989],[4,201,251227,45.3,9.8,496.3,0,159814],[4,219,223583,76.0,9.8,491.74,1,127013]],"DEPT-014":[[3,119,132941,38.8,5.1,175.09,0,102677],[3,167,167024,58.0,8.2,339.55,0,108418],[3,97,111549,34.7,2.8,144.43,0,85015],[3,194,191919,29.0,6.2,316.14,0,129430],[4,145,170254,39.0,5.2,280.28,0,117206],[3,115,96098,24.2,5.4,176.46,0,59669],[3,174,170804,31.8,8.3,266.45,0,123773],[4,143,131034,25.0,7.5,432.08,0,95269],[4,344,325981,81.0,13.4,746.94,0,163405],[4,170,191045,38.7,6.4,261.16,0,131338]],"DEPT-015":[[4,212,237885,29.9,9.5,511.09,0,133698],[4,232,244284,37.1,8.4,474.44,1,169500],[5,262,223240,79.5,10.2,428.0,0,151669],[5,331,310094,48.1,16.2,529.3,1,237403],[5,187,125195,34.9,4.6,236.26,0,87678],[5,177,156238,40.3,6.7,354.22,0,105520],[5,218,252688,72.8,12.0,669.28,0,188264],[6,503,477468,161.5,23.8,1290.57,1,295484],[5,362,357372,112.1,18.3,785.57,1,185198],[6,214,248546,31.7,10.4,355.32,0,162802]],"DEPT-016":[[3,201,212656,41.8,8.8,334.18,1,169189],[4,166,109921,25.3,4.2,161.29,0,75349],[4,295,302637,50.0,7.7,409.71,1,222166],[4,179,218994,65.8,7.3,240.4,0,141891],[4,177,157244,37.3,8.3,476.52,0,112282],[5,173,171198,42.5,8.1,439.24,0,128448],[4,187,178883,61.4,7.7,405.22,0,141487],[4,217,175460,62.0,8.4,330.45,1,109563],[5,291,280276,47.0,11.1,494.58,1,172440],[5,319,309355,99.0,15.5,677.04,1,223528]],"DEPT-017":[[4,198,205772,47.9,7.7,287.48,0,154972],[5,166,196921,49.1,7.4,421.48,0,127213],[5,216,198074,31.3,9.0,371.27,0,133717],[5,308,317178,48.9,8.6,478.02,1,223157],[6,232,226678,80.9,11.6,479.06,1,173676],[6,318,252843,86.0,8.1,384.05,1,163570],[6,267,233971,68.0,11.6,516.86,0,134974],[6,305,231062,58.8,12.1,661.45,1,144633],[6,238,221428,35.3,10.3,363.54,0,142910],[6,249,213097,48.0,8.7,334.58,0,110275]],"DEPT-018":[[4,232,276963,45.2,5.8,265.42,0,196141],[5,204,151618,38.7,8.4,396.35,0,87016],[4,167,149103,33.1,7.9,320.88,0,86761],[5,193,177305,50.6,9.7,365.68,0,121352],[4,295,326591,70.3,11.3,546.99,0,236093],[5,352,233534,66.2,14.5,480.41,1,142797],[5,405,459422,140.3,20.0,807.7,1,273512],[6,445,513719,104.7,23.0,1246.24,1,349362],[5,258,232559,53.5,11.1,529.86,1,118616],[6,523,557306,162.6,18.7,634.51,1,382518]],"DEPT-019":[[5,148,119569,49.2,3.5,181.2,0,87146],[6,278,240462,51.1,9.8,428.26,1,143185],[5,234,201444,65.0,7.4,393.1,1,151392],[6,444,426862,88.6,15.9,563.14,1,255575],[6,247,224012,65.0,5.5,227.46,0,132165],[7,565,509482,82.8,18.1,597.31,1,308233],[7,500,388961,94.3,16.4,879.05,1,262954],[7,304,305881,61.0,12.6,613.89,0,246993],[7,508,464458,127.1,18.6,982.61,1,353966],[7,614,372850,126.4,27.7,935.22,1,255343]],"DEPT-020":[[4,248,293712,43.5,8.9,299.31,0,209572],[6,377,379531,69.9,12.1,542.43,0,262825],[5,335,390459,98.9,16.0,561.56,1,253093],[5,279,312557,101.0,9.2,460.07,1,224060],[6,403,377372,97.1,9.3,363.78,1,231165],[6,392,342617,133.8,19.2,836.25,1,173648],[7,390,383065,119.0,16.2,888.89,1,229262],[6,390,329131,98.9,13.7,790.48,1,191280],[6,508,643511,133.1,22.9,1038.44,1,393131],[7,445,364355,57.6,21.8,1151.23,0,237161]],"DEPT-021":[[4,271,280533,77.9,13.5,435.54,1,199178],[3,110,135296,17.6,4.1,180.6,0,82640],[4,137,151301,41.2,4.4,191.45,0,87256],[4,125,137600,42.9,3.8,165.56,0,105989],[4,187,162264,41.7,8.4,394.4,0,108752],[4,273,318343,46.9,12.9,669.51,0,181264],[4,176,145163,26.9,8.8,480.48,0,101199],[4,292,279122,69.1,6.6,257.64,1,201593],[5,177,172143,50.5,7.8,377.62,0,94213],[4,288,276884,85.1,7.8,432.09,0,176728]],"DEPT-022":[[5,292,219516,62.8,11.4,658.97,1,150228],[6,222,228875,65.0,7.0,375.59,0,131172],[5,264,304529,53.1,5.6,217.44,1,214024],[5,364,300794,63.7,18.9,913.57,0,209610],[6,372,436584,108.0,9.6,486.39,0,254823],[6,358,428595,54.9,16.3,738.17,0,256615],[6,275,335083,97.6,15.1,523.27,0,229869],[7,305,337717,84.5,7.7,250.55,1,241158],[7,282,339950,74.9,13.6,496.61,1,236831],[7,413,520825,147.2,19.3,695.15,0,329959]],"DEPT-023":[[3,116,131610,30.9,4.9,176.26,0,83634],[4,270,353557,37.3,12.4,453.81,1,220888],[4,254,272232,80.0,12.0,569.22,0,159835],[4,127,151956,38.9,6.8,348.74,0,107514],[4,279,297213,86.0,11.4,588.89,0,159853],[4,303,211507,106.0,7.3,311.15,1,145970],[4,185,153795,33.1,5.9,293.18,0,105364],[5,267,291184,88.6,7.0,272.0,0,212050],[5,401,460752,113.2,8.3,289.92,0,292058],[5,251,241324,78.2,7.7,322.82,0,129379]],"DEPT-024":[[3,208,256183,52.2,5.9,261.97,0,179858],[5,251,274751,70.8,12.0,423.16,0,182031],[4,167,198262,36.0,5.6,300.95,0,140727],[4,217,191199,69.3,5.8,270.72,0,104772],[4,315,318721,66.9,6.5,280.45,0,231476],[5,342,365177,86.5,13.5,722.6,0,230306],[4,319,397144,93.8,8.8,371.1,1,251803],[5,359,463457,131.4,10.2,453.32,1,290063],[5,255,290282,62.1,8.2,275.62,0,201576],[6,457,526838,121.0,14.5,475.86,0,316550]],"DEPT-025":[[3,156,151233,48.2,7.9,386.14,0,114073],[3,108,94484,16.6,4.2,203.92,0,50010],[4,172,132382,61.6,6.2,300.74,0,84332],[4,285,206747,50.9,8.7,333.11,0,120951],[4,148,160729,24.3,5.2,191.02,0,119881],[4,128,103301,35.5,4.1,221.84,0,74650],[4,263,266790,89.6,13.5,438.34,1,142730],[4,290,222510,57.8,6.8,285.57,1,140888],[5,347,319706,59.2,16.8,707.38,0,168538],[5,288,361158,40.1,14.6,625.21,1,227479]],"DEPT-026":[[4,187,219950,26.1,4.8,208.61,0,156407],[4,249,216865,50.3,10.2,511.03,0,115414],[4,140,114254,39.6,7.3,303.35,0,65067],[5,325,288809,81.6,11.0,615.18,0,183085],[4,194,174312,26.5,9.5,360.91,0,89488],[5,186,153769,63.3,6.8,327.51,0,100068],[4,310,392661,109.6,16.3,896.96,1,257503],[5,409,414029,62.2,9.9,532.79,1,215563],[5,209,229179,67.9,8.1,363.86,1,146363],[6,291,238295,78.3,8.8,505.34,0,169037]],"DEPT-027":[[5,276,271078,56.3,13.9,498.57,0,202531],[5,364,373936,108.8,10.6,496.45,1,258875],[5,257,229122,72.9,7.4,289.02,0,152897],[6,361,433752,76.5,14.4,472.27,1,293669],[5,240,254824,63.3,8.8,418.4,0,148927],[7,343,352738,87.6,15.2,874.74,1,250948],[6,430,339660,62.6,15.0,834.92,1,238279],[6,376,353770,82.4,17.6,809.56,1,196896],[7,277,341228,72.7,13.9,664.74,0,222767],[6,351,234525,55.2,16.3,532.05,0,152814]],"DEPT-028":[[4,154,123518,30.1,7.1,282.46,0,73086],[5,164,201382,23.1,3.4,161.7,0,128980],[5,179,183910,29.2,6.2,254.01,0,95276],[5,203,209622,55.6,6.8,265.76,0,151569],[5,380,412103,124.9,19.4,894.53,0,245916],[5,393,453319,53.4,13.9,619.67,1,279886],[6,208,222777,42.0,4.2,182.94,0,137718],[6,246,232908,81.6,7.7,247.85,1,160361],[6,476,578374,89.6,25.1,1273.83,1,390860],[7,270,224627,79.6,14.3,496.78,1,145290]],"DEPT-029":[[3,182,162191,36.0,5.0,255.33,0,94939],[4,154,149051,33.2,6.0,323.02,0,87330],[5,281,340604,90.1,11.3,472.05,0,227727],[5,347,360645,116.4,10.9,450.88,0,246985],[4,198,193263,51.7,5.2,206.86,0,107447],[4,317,255945,69.7,7.7,430.73,1,185057],[5,391,283340,85.5,17.7,683.0,0,195073],[5,392,434666,61.4,19.2,730.31,0,308424],[6,395,424380,84.0,14.5,838.59,1,319370],[6,430,415838,130.8,17.1,826.87,1,323818]],"DEPT-030":[[4,240,180125,31.8,6.5,266.26,0,133783],[4,121,110124,39.3,5.5,210.43,0,74321],[4,218,250168,31.1,8.0,340.04,1,186591],[4,237,233616,82.4,8.7,329.66,0,124801],[5,186,157901,36.6,4.7,264.35,0,88193],[5,265,302998,89.8,12.1,480.79,0,185953],[4,273,281370,89.7,6.6,314.36,0,178290],[6,258,322722,93.8,11.7,522.13,0,203800],[6,256,226282,64.0,10.3,528.25,0,119741],[5,292,249702,84.3,14.6,576.17,0,162633]],"DEPT-031":[[5,161,144515,24.2,5.3,300.02,0,84575],[5,333,328173,93.0,9.4,343.38,1,200167],[5,224,221180,59.2,6.4,305.06,0,124347],[5,375,353474,60.0,17.3,892.14,0,240882],[6,452,402630,77.7,17.2,960.83,0,214305],[6,427,472698,63.4,18.5,718.73,0,302320],[6,403,452747,107.7,20.8,1132.1,1,327397],[7,536,497661,135.3,18.1,585.12,1,372415],[7,454,511918,138.5,22.1,913.98,1,305745],[8,379,429067,61.8,20.6,894.43,1,301573]],"DEPT-032":[[3,132,125542,25.5,5.1,293.22,0,74898],[4,237,225006,84.5,6.2,270.81,0,166248],[4,284,207848,47.3,11.9,662.33,0,139576],[3,149,131551,25.5,3.3,122.08,0,93862],[4,160,222453,58.9,5.1,238.54,0,143688],[5,169,130414,34.0,5.7,328.37,0,89797],[4,300,223529,92.1,14.9,829.75,1,154190],[5,288,265146,99.7,10.6,555.52,0,159915],[5,406,575222,99.1,10.1,344.37,1,372755],[4,343,437100,89.7,9.7,398.05,0,285132]],"DEPT-033":[[4,264,233517,84.4,12.5,665.53,1,130500],[4,188,172219,49.1,8.0,345.36,1,102229],[4,120,106283,39.9,4.2,209.18,0,79090],[4,279,270029,90.9,8.3,357.37,1,142724],[4,293,283236,51.1,6.2,314.81,0,140717],[5,225,234839,47.8,6.8,232.94,0,174930],[5,192,236183,35.3,10.2,410.19,1,173465],[5,360,328316,79.0,13.0,598.87,0,174341],[5,398,389779,86.4,18.4,1053.69,0,296904],[6,289,207156,86.8,11.1,630.4,0,147762]],"DEPT-034":[[5,183,208051,32.0,9.1,319.64,0,145841],[5,260,305671,45.1,11.6,460.23,1,204356],[6,201,179535,54.4,8.5,426.08,0,122085],[6,354,401004,111.8,15.6,828.47,1,252322],[6,262,219709,62.2,10.4,363.14,0,152253],[6,400,486020,76.1,8.4,450.48,0,316512],[6,297,338389,86.5,8.4,454.8,0,246392],[7,463,472074,160.3,15.9,813.49,1,304665],[7,376,390414,124.0,9.6,314.54,0,288859],[7,607,471227,158.7,30.5,1737.21,2,309554]],"DEPT-035":[[5,300,276558,67.6,10.0,511.25,0,163941],[5,174,176631,35.4,8.0,309.32,0,108239],[5,254,250587,69.2,9.6,545.51,0,182609],[5,255,204519,46.7,6.5,301.16,1,121719],[6,447,584653,70.5,13.0,448.86,1,393464],[5,268,290943,91.3,6.6,221.58,0,176908],[5,414,357822,110.1,18.1,770.42,0,275992],[5,390,503901,112.0,21.1,1096.52,1,313377],[6,489,386809,86.7,22.8,901.81,1,282175],[6,321,385960,101.4,7.7,371.55,0,229226]],"DEPT-036":[[5,350,277350,112.3,17.9,755.4,0,172703],[6,388,351212,95.1,14.9,599.93,0,210414],[7,466,580713,152.8,15.8,558.64,1,406111],[6,411,396940,138.4,10.6,364.46,0,232041],[7,356,466923,106.2,8.1,463.05,1,285262],[7,489,533056,104.3,10.7,480.61,1,366024],[8,272,301040,85.2,11.9,652.31,1,167768],[8,523,496144,85.6,11.5,472.0,0,242952],[8,643,620808,204.7,34.6,1144.37,1,420695],[8,305,284080,95.2,8.9,502.97,1,194971]],"DEPT-037":[[4,157,140560,30.9,4.4,204.97,0,94860],[4,289,285185,81.3,12.5,474.36,1,158354],[4,236,189578,44.9,6.6,373.69,1,126125],[4,211,188905,34.9,6.7,239.18,0,107276],[5,190,157216,58.7,10.1,462.8,0,108450],[4,290,204472,81.8,7.1,236.3,1,142729],[5,359,409367,66.1,18.5,986.51,1,242413],[5,258,215736,39.9,8.6,396.85,0,142434],[5,222,250614,42.8,5.7,274.91,1,177815],[6,422,376413,117.7,23.6,1111.26,1,279570]],"DEPT-038":[[4,151,165758,27.3,4.1,203.62,0,120097],[5,203,204359,55.2,5.7,257.02,0,116843],[5,157,122038,33.0,5.4,245.83,0,72611],[5,210,283670,47.6,9.3,533.94,0,178982],[5,369,279885,65.1,16.5,728.6,1,184428],[6,207,167402,50.4,8.0,387.16,0,87465],[6,465,467020,164.5,10.9,594.64,1,354944],[6,476,473363,131.7,13.5,449.38,1,300847],[6,405,297794,126.6,15.7,850.73,0,190246],[7,360,450277,66.6,11.4,411.19,1,279991]],"DEPT-039":[[3,120,132327,30.2,4.3,233.27,0,88253],[3,171,129927,52.2,7.7,286.39,0,95160],[3,110,136041,31.0,3.6,131.55,0,96769],[4,250,257210,59.5,5.4,306.89,1,149597],[3,213,188734,58.5,8.2,407.41,0,137587],[3,110,115024,32.2,5.8,322.26,0,78896],[4,183,192253,24.5,6.2,283.98,0,147594],[4,151,92602,29.9,3.6,180.6,0,61920],[4,148,169278,53.0,5.8,198.07,0,120094],[4,318,250625,108.3,14.5,606.68,1,146424]],"DEPT-040":[[3,141,142382,33.3,3.4,110.4,0,88043],[3,180,130090,57.2,8.7,459.49,0,75072],[3,190,167386,37.6,8.2,276.45,0,116854],[3,104,114564,24.9,3.7,176.87,0,71345],[3,139,131021,43.3,3.9,125.8,0,98451],[3,107,109655,21.5,2.7,140.27,0,77726],[4,170,141592,25.6,6.6,295.67,0,93731],[4,328,378632,62.8,15.1,487.18,1,215521],[4,268,230373,91.9,10.9,582.32,0,136939],[4,345,357398,106.3,10.5,590.89,0,266628]],"DEPT-041":[[4,278,362735,72.9,6.8,330.13,1,224494],[4,148,119797,37.7,4.7,158.38,0,71232],[5,228,212966,45.1,9.9,447.98,0,141122],[5,251,253230,60.5,7.3,331.67,0,155040],[4,127,99864,43.9,4.7,225.27,0,66650],[5,172,135238,47.6,6.8,231.32,0,90308],[6,493,461076,90.1,23.8,1040.45,1,245365],[5,171,169997,48.7,4.8,230.01,0,118361],[5,381,341921,111.9,18.7,992.7,0,194132],[5,203,210796,55.8,8.2,388.29,0,105879]],"DEPT-042":[[4,135,101632,21.1,6.8,392.99,0,65478],[4,259,272493,56.7,6.5,327.37,1,182163],[4,188,148364,69.0,9.3,472.34,1,85604],[4,189,188433,41.4,8.2,336.02,0,121507],[4,284,289908,63.3,12.7,557.75,0,198042],[4,238,235895,59.2,12.4,585.94,0,120840],[4,171,152672,35.2,6.2,216.86,0,100445],[4,226,168389,70.6,9.2,347.97,1,114237],[5,307,225341,48.9,10.1,476.25,0,151837],[4,205,236207,75.7,4.7,263.33,0,175678]],"DEPT-043":[[4,147,150243,23.5,7.0,376.79,0,88905],[4,155,167585,38.8,5.9,290.43,0,123790],[4,161,172193,27.6,7.0,241.1,0,127248],[5,274,278260,78.7,5.8,289.69,0,204937],[5,163,160492,47.0,5.9,228.57,0,95391],[5,171,152769,26.3,6.2,352.37,0,79180],[6,346,367917,102.6,13.5,529.25,0,223585],[5,169,153174,47.0,3.6,149.64,0,112788],[6,207,258097,67.4,10.8,387.3,0,166222],[5,282,262904,75.8,6.9,225.39,0,152900]],"DEPT-044":[[2,119,113519,19.5,2.7,100.11,0,77921],[2,63,51794,14.8,2.6,118.37,0,36542],[2,110,119413,22.2,4.5,189.26,0,80744],[3,105,78222,25.1,4.2,181.75,0,49699],[2,98,111054,20.1,3.1,161.52,0,71944],[3,146,131141,41.7,5.0,287.94,0,65830],[3,167,128358,37.4,7.9,302.77,0,71605],[2,119,99286,22.5,3.7,160.04,0,71881],[3,104,99757,34.6,5.2,202.87,0,49714],[3,175,172352,52.7,7.2,317.47,0,91395]],"DEPT-045":[[2,102,87954,32.6,2.4,108.75,0,61926],[2,70,52578,18.6,2.2,97.33,0,31748],[2,76,63458,14.5,2.7,95.97,0,38120],[2,103,113797,30.3,5.1,217.95,0,79052],[2,69,59526,19.9,1.9,96.17,0,30362],[2,70,72702,22.2,1.6,73.55,0,44053],[3,164,182162,34.9,5.0,166.53,0,110076],[3,146,176397,45.5,4.9,177.22,0,131442],[3,187,175237,37.8,6.7,309.53,0,111194],[3,228,158033,55.5,7.5,405.97,0,96362]],"DEPT-046":[[4,261,212941,53.4,10.7,450.73,0,144005],[4,162,159383,24.3,7.0,381.46,0,88956],[5,164,186310,38.7,4.3,166.68,0,138722],[4,258,221184,72.4,11.2,408.25,0,139153],[5,338,309551,49.8,9.1,501.29,0,241136],[5,235,183636,71.8,10.3,595.15,0,120113],[5,179,169875,37.2,5.1,200.44,0,128846],[5,227,177903,30.7,9.5,516.66,0,115866],[5,247,231902,37.0,10.3,563.76,0,138285],[6,304,328479,57.0,14.8,545.55,0,207480]],"DEPT-047":[[4,212,195713,55.9,10.2,584.38,0,95310],[4,214,234343,65.3,8.4,338.27,0,173637],[4,158,149560,43.3,6.6,217.39,0,92810],[4,198,230839,32.1,5.4,295.32,1,167612],[4,146,134612,45.2,3.3,119.81,0,100782],[4,258,251776,45.2,11.6,536.04,1,167902],[5,346,404591,68.0,16.9,874.65,1,248743],[5,168,143935,58.8,8.8,397.54,0,103717],[4,196,178876,34.4,4.6,154.91,0,97504],[5,437,408193,81.5,10.9,544.12,0,285439]],"DEPT-048":[[4,179,139997,48.5,6.6,313.44,0,102695],[3,198,232741,40.4,8.1,349.08,1,156396],[4,130,151546,31.5,6.1,325.32,0,92849],[4,126,106820,27.8,6.1,331.72,0,62501],[5,184,163844,60.8,5.2,245.94,1,113571],[4,282,304735,43.8,6.4,223.08,0,226148],[4,154,144256,26.4,6.7,328.86,0,80145],[5,262,258179,74.6,10.6,459.12,0,168756],[5,350,364849,56.2,9.7,476.33,0,282815],[5,406,435403,86.0,10.9,613.32,1,294698]],"DEPT-049":[[5,227,239503,49.5,5.1,246.15,0,168941],[5,182,205897,28.1,3.9,214.74,0,151483],[4,124,92348,45.9,3.4,145.53,0,63338],[5,357,289222,120.3,17.3,667.24,1,165491],[5,231,167737,65.1,7.3,342.91,0,102731],[6,264,301105,75.5,11.5,431.85,0,193371],[6,253,296808,66.2,9.8,522.62,1,211276],[6,454,441025,92.5,24.5,1111.09,1,269328],[6,213,145298,44.9,5.0,209.93,0,99814],[7,496,513084,91.0,21.8,880.82,0,376975]],"DEPT-050":[[5,317,256958,91.1,16.1,786.26,0,147485],[5,291,307702,60.9,6.4,301.17,0,246574],[5,296,276446,63.9,13.8,573.18,0,170800],[5,262,275461,90.6,7.7,369.25,1,175026],[6,406,410130,147.7,14.5,755.15,1,284580],[6,265,230929,73.3,5.4,259.55,0,162129],[6,469,422749,67.9,22.1,1070.28,0,220943],[6,291,242603,51.5,15.5,565.2,1,174635],[7,387,356292,126.6,11.5,459.17,1,231365],[7,241,246255,49.4,11.1,514.72,0,164435]],"DEPT-051":[[3,212,207632,45.8,7.2,307.12,1,119989],[3,196,165951,62.7,8.4,295.87,0,115224],[3,225,249732,36.3,5.6,279.98,0,199378],[3,110,96060,37.8,2.6,127.76,0,61386],[3,198,278815,51.5,9.8,416.26,0,180276],[4,236,198820,67.2,7.7,315.02,0,138451],[4,215,218258,54.6,11.4,608.94,1,136850],[4,175,196751,54.3,7.3,340.68,0,120612],[4,139,129248,44.5,6.5,251.14,0,78676],[4,145,121304,19.4,5.1,233.22,0,78677]],"DEPT-052":[[3,178,148564,57.6,8.0,370.35,0,80461],[3,142,160336,47.6,3.9,138.08,0,96419],[2,129,155384,40.3,4.4,240.54,0,94821],[3,134,127158,41.5,4.1,201.08,0,68571],[3,208,226673,76.1,11.2,582.23,0,154966],[3,120,150189,21.3,2.9,127.88,0,98760],[4,154,144179,26.5,7.7,315.36,0,92967],[3,154,157583,37.3,5.5,247.09,0,92972],[4,274,201404,59.1,12.5,543.4,0,111219],[3,139,133895,34.7,4.2,200.19,0,76475]],"DEPT-053":[[3,200,211705,62.3,6.0,337.57,0,111682],[3,151,138817,28.5,7.3,346.17,0,70127],[3,137,126931,26.7,6.5,239.86,0,86709],[3,221,276520,51.1,9.8,325.57,1,177498],[4,255,262740,87.4,5.5,190.91,0,207648],[3,155,171788,32.6,7.7,281.8,0,125116],[4,179,221203,41.9,9.0,381.54,0,152849],[5,322,340643,57.4,15.7,862.93,0,266927],[4,180,188693,31.9,6.0,347.77,0,102569],[4,269,268500,64.3,11.6,481.14,0,152420]],"DEPT-054":[[5,166,196206,33.7,7.9,406.2,0,127488],[5,175,146885,38.2,5.4,298.82,0,97740],[4,171,146315,24.9,7.9,424.8,0,100286],[5,205,241500,48.1,6.9,320.23,0,152590],[4,199,193737,60.0,4.3,144.16,0,115921],[6,454,496668,146.7,11.0,376.22,1,332986],[5,209,264418,34.9,6.4,231.51,0,175991],[5,281,216280,77.3,6.5,279.0,1,117633],[6,460,557566,92.8,18.2,733.72,1,380615],[6,235,270758,75.2,10.4,534.4,1,162737]],"DEPT-055":[[3,122,137504,18.5,2.6,101.66,0,84027],[3,179,188446,33.9,8.8,500.03,0,98139],[4,155,129612,26.9,7.9,362.48,0,75344],[4,276,250462,87.6,7.0,307.01,0,120429],[5,337,358630,81.0,9.2,474.11,1,247014],[4,237,261923,72.0,4.9,217.01,0,173551],[4,173,155834,33.9,7.5,258.4,0,86956],[4,310,321896,92.4,12.5,577.89,1,200570],[5,349,301106,48.9,7.6,276.99,1,179265],[5,356,415280,87.3,11.9,656.45,1,295374]],"DEPT-056":[[4,181,212938,38.4,3.9,140.14,0,131472],[4,119,141327,41.2,4.0,230.07,0,87812],[4,285,294379,75.7,9.1,420.38,1,208094],[5,309,329886,58.0,8.6,454.31,0,245161],[5,302,303899,79.2,8.8,501.36,1,167395],[5,181,134144,61.8,4.3,229.37,0,92428],[5,379,435009,53.7,15.7,656.19,1,292570],[5,199,256694,40.1,8.6,493.49,0,177583],[5,248,263509,35.9,11.5,569.97,1,162009],[6,389,445713,105.7,8.6,341.03,1,309479]],"DEPT-057":[[5,270,324639,41.5,9.2,505.15,1,209875],[5,258,299087,82.7,8.5,376.39,0,214806],[4,169,208658,35.4,3.7,156.22,0,125903],[5,349,338081,48.1,12.2,681.14,1,244597],[5,167,139210,35.5,5.1,249.56,0,90921],[5,268,346084,68.3,11.3,549.09,0,219281],[5,262,231447,97.1,10.2,472.9,0,123341],[6,221,234701,54.2,11.7,574.06,0,125894],[6,381,377834,131.0,16.3,730.66,0,195936],[6,263,268795,98.2,7.2,389.09,0,197603]],"DEPT-058":[[5,257,231031,73.9,5.7,265.93,0,128206],[4,259,309950,79.7,9.0,494.63,0,180327],[5,349,343857,85.5,10.9,549.41,0,217051],[4,206,181782,75.6,10.8,602.92,0,126222],[4,186,189651,28.1,4.0,209.98,0,148542],[6,412,462457,90.0,15.8,545.69,1,278951],[6,428,418199,136.7,17.1,552.0,1,291536],[6,442,560114,156.2,16.6,645.25,1,360055],[6,415,390893,114.7,9.9,417.35,1,289370],[6,339,373707,59.5,9.4,430.27,0,259950]],"DEPT-059":[[6,285,332922,80.9,7.3,235.65,1,221557],[6,434,405580,131.4,20.8,989.55,1,277130],[7,399,351588,61.0,11.3,564.23,1,184184],[7,288,277888,79.9,10.4,407.76,0,193012],[8,478,456585,89.2,20.8,788.54,1,267794],[6,236,227279,67.7,5.8,217.68,1,137543],[7,287,242643,68.1,12.0,630.9,1,158323],[7,400,385079,112.4,19.2,1088.98,1,273373],[7,485,381028,143.2,19.1,787.1,0,221774],[8,448,476788,131.5,14.7,571.6,1,256648]],"DEPT-060":[[3,201,199503,38.2,8.5,466.79,0,131504],[3,128,96154,32.0,6.1,322.94,0,57998],[3,170,168492,46.4,5.5,179.14,0,101779],[3,141,156394,24.9,7.1,389.94,0,103828],[4,159,171649,34.9,6.7,378.95,0,115001],[4,249,214766,84.8,6.9,286.96,0,152667],[4,239,258246,58.9,11.7,530.64,0,193530],[4,188,198033,62.6,8.9,448.52,0,148891],[4,183,180241,36.1,7.8,362.65,0,107550],[4,314,387856,67.7,8.6,293.12,0,259866]],"DEPT-061":[[3,114,125188,26.1,5.7,230.76,0,92113],[3,213,278503,71.0,5.4,270.27,1,178486],[4,239,257002,63.7,7.3,399.92,0,204069],[4,241,251492,79.0,7.3,247.24,1,146583],[4,265,294076,75.9,6.6,339.31,0,203842],[5,283,306955,39.9,9.7,418.14,0,192957],[5,366,255436,80.3,16.8,767.23,0,156941],[5,347,281159,110.4,12.8,641.46,0,150079],[5,283,264685,81.2,12.4,466.24,0,197023],[5,242,223377,81.5,7.6,328.58,0,152564]],"DEPT-062":[[3,137,131852,21.5,7.1,247.0,0,82419],[4,167,160169,24.3,7.2,254.15,0,97157],[3,193,159627,65.1,6.9,246.92,1,84331],[4,138,134792,34.4,4.8,201.45,0,70720],[4,130,131273,18.6,5.7,228.89,0,85690],[4,130,145483,29.6,3.2,183.66,0,80025],[4,263,331580,56.0,14.0,520.18,0,201633],[4,133,118506,42.9,3.4,192.68,0,84177],[4,306,290879,47.4,13.6,746.63,0,177314],[5,263,179343,59.3,8.8,401.96,0,118489]],"DEPT-063":[[4,146,128299,45.2,4.0,169.66,0,75650],[3,108,122257,30.8,4.5,207.58,0,90179],[4,167,125490,38.5,4.8,255.43,0,86801],[5,215,171996,59.6,8.7,416.73,0,119281],[5,348,273004,109.4,8.3,327.5,0,173897],[4,313,380636,63.4,16.3,664.67,1,260129],[5,355,389687,113.6,12.3,431.99,1,299279],[5,320,329490,52.8,11.3,548.89,1,222170],[5,216,247422,36.6,9.0,511.46,0,163870],[6,212,203376,44.7,7.5,262.89,0,114636]],"DEPT-064":[[3,96,104839,22.4,2.9,96.69,0,82492],[4,231,313329,85.5,8.0,407.94,0,199806],[5,317,327909,76.4,14.9,699.94,1,204229],[4,269,211551,51.6,13.4,714.12,0,135861],[5,310,360260,79.5,9.8,339.65,0,244542],[4,223,227062,52.2,9.7,538.82,1,134260],[5,355,262643,118.0,16.7,888.44,1,162506],[5,328,320027,49.9,13.4,487.94,0,198660],[5,180,202093,61.9,6.5,266.3,0,150845],[5,309,218573,77.5,11.6,606.4,0,152808]],"DEPT-065":[[2,67,53531,14.6,2.1,79.57,0,31700],[2,125,111999,26.8,3.6,198.06,0,82030],[2,66,56580,12.2,2.2,79.47,0,40127],[2,142,183251,41.5,6.4,264.21,0,117574],[2,153,152349,24.1,7.6,438.71,0,120284],[3,239,251023,53.9,8.1,320.38,0,159905],[3,216,158394,31.2,6.6,311.69,0,105070],[2,163,157018,34.2,6.6,289.74,0,109072],[3,115,117355,19.6,2.9,142.51,0,67789],[3,136,131954,20.0,5.6,192.02,0,96714]],"DEPT-066":[[3,171,175246,59.4,4.1,168.73,0,124946],[3,162,143453,44.5,5.4,230.16,0,72120],[3,133,125050,21.2,7.1,304.35,0,96004],[3,227,190079,32.6,5.6,192.18,0,113771],[3,190,211071,47.5,7.1,274.56,1,137862],[3,226,239304,34.0,6.0,209.07,0,145091],[3,186,124604,35.4,7.0,297.22,0,85861],[3,251,248937,54.0,12.3,394.28,1,151642],[4,174,133729,27.0,4.7,168.29,0,95735],[4,239,288222,62.5,6.3,359.8,0,197428]],"DEPT-067":[[2,104,129891,38.3,4.1,199.2,0,79303],[2,111,94714,22.0,5.9,303.31,0,61613],[3,194,212917,39.8,7.8,448.77,0,122512],[3,112,109855,16.0,3.5,193.23,0,58288],[3,96,93367,27.6,4.0,230.16,0,54348],[3,226,266990,34.7,9.3,383.59,0,166119],[4,147,141743,32.6,5.3,248.97,0,94314],[4,203,240578,52.1,8.6,402.07,0,157492],[4,222,237268,31.9,9.5,417.84,1,171413],[4,160,183147,24.7,7.6,341.42,0,132042]],"DEPT-068":[[2,86,86410,21.9,2.4,134.72,0,41884],[3,189,194480,67.7,9.3,386.23,0,146233],[3,123,117895,18.5,3.0,136.97,0,90872],[3,208,172027,52.9,7.0,370.34,0,95287],[3,171,149172,47.5,5.8,312.93,0,97670],[3,188,199510,62.1,3.8,125.34,0,141799],[3,145,113019,31.3,3.8,166.05,0,68135],[3,164,131896,50.2,3.2,113.78,0,89411],[3,254,308740,83.2,9.0,352.36,0,223054],[4,231,239143,72.6,11.2,390.91,0,184825]],"DEPT-069":[[3,212,162467,41.5,8.1,431.91,0,119442],[4,278,238459,37.6,11.9,452.5,1,131131],[4,225,200906,54.5,8.7,324.91,0,111483],[3,224,226372,47.9,5.1,163.54,0,153696],[4,189,132178,45.0,4.0,204.96,0,89816],[4,203,137763,47.4,4.1,187.72,0,95339],[4,255,265610,86.2,12.6,542.59,0,178052],[5,363,334585,123.0,15.6,673.01,1,258051],[4,303,341024,61.8,6.4,206.74,0,208091],[4,278,279709,62.5,14.0,458.54,0,178318]],"DEPT-070":[[2,78,73352,18.8,3.7,144.86,0,41094],[2,138,115425,48.1,5.0,275.45,0,77498],[2,132,143353,35.6,7.0,302.8,0,84999],[3,193,143183,64.4,9.4,505.01,0,88203],[2,87,107254,14.7,4.1,149.78,0,63135],[3,126,138503,45.1,3.9,190.71,0,85288],[3,190,179889,28.8,6.8,340.9,0,132939],[2,130,119012,20.5,6.1,342.32,0,82715],[3,161,169749,27.1,8.0,447.96,0,102101],[3,145,136959,55.5,4.1,164.69,0,88119]],"DEPT-071":[[4,285,233052,87.7,8.9,311.37,0,131475],[3,117,92436,18.9,4.5,195.83,0,65838],[4,275,256481,46.5,9.9,322.44,0,186261],[3,172,168184,34.0,3.8,141.41,0,115517],[3,169,135963,46.8,4.6,215.06,0,81125],[4,170,148166,35.4,7.0,357.71,0,80699],[4,212,253548,73.6,8.1,370.78,1,178966],[4,268,204074,47.4,7.0,333.53,0,134892],[4,205,170977,66.1,10.1,449.23,1,114669],[5,388,495734,134.1,20.5,876.33,0,302259]],"DEPT-072":[[3,96,118084,27.6,2.6,104.03,0,81290],[3,219,263752,68.9,7.6,371.58,1,173575],[3,92,95503,20.6,2.7,124.32,0,54296],[3,168,172639,33.9,6.8,327.2,0,102689],[4,173,172543,44.1,4.5,221.16,0,89298],[3,239,238808,49.5,9.9,524.53,0,184765],[4,282,291894,76.6,7.5,329.67,0,181207],[5,381,412614,78.7,15.2,823.96,1,292370],[5,271,293807,56.9,13.1,558.42,1,211450],[5,407,443958,96.9,15.0,646.22,1,342682]],"DEPT-073":[[5,281,290089,94.1,12.2,525.31,0,157854],[6,417,411197,66.1,13.8,647.64,0,218932],[7,357,344694,82.7,14.1,732.26,0,224889],[6,186,188793,39.5,8.7,495.06,0,146101],[7,483,460588,84.0,23.1,1315.08,1,334743],[7,427,383881,107.7,21.3,797.88,1,262187],[7,475,475302,87.2,14.9,698.08,0,336054],[7,446,403459,76.1,11.3,419.45,0,239251],[7,277,282687,46.8,12.8,565.88,0,218905],[8,416,475393,125.7,9.5,471.75,1,278996]],"DEPT-074":[[3,106,94073,18.7,2.5,108.89,0,58490],[4,195,231652,55.7,8.3,407.57,0,165482],[4,234,252364,61.2,8.4,319.08,0,176821],[3,197,214303,63.7,6.8,221.24,0,168205],[4,302,309872,85.6,15.0,693.22,0,210600],[4,263,269575,62.5,12.2,434.22,1,148608],[4,139,129121,23.6,6.6,340.28,0,66804],[4,337,308052,108.0,10.9,466.24,0,190721],[4,159,169617,28.5,4.3,238.92,0,102247],[5,380,372846,98.7,18.6,768.77,0,292156]],"DEPT-075":[[2,95,98857,30.0,2.1,85.02,0,71511],[2,142,132320,18.7,4.1,165.8,0,98097],[2,94,73616,31.2,2.4,125.81,0,42815],[2,104,82658,29.4,5.2,176.46,0,45641],[2,81,65224,17.7,2.5,142.86,0,42386],[2,97,92634,25.7,2.8,90.89,0,46696],[2,113,117552,18.1,3.6,167.25,0,68750],[2,160,197907,47.6,5.8,260.03,0,131531],[2,88,110869,25.4,3.1,111.44,0,77494],[2,165,180184,23.5,8.4,287.85,0,126231]],"DEPT-076":[[2,101,92007,26.4,5.1,230.94,0,64299],[2,121,90543,24.7,5.8,214.72,0,63741],[2,112,127131,37.8,2.9,134.31,0,83232],[2,140,125541,37.8,6.2,229.9,0,77707],[2,90,73474,28.7,1.9,67.55,0,55208],[2,156,112856,21.8,5.9,207.3,0,73834],[3,153,157836,21.4,4.4,219.17,0,99465],[3,186,177924,33.3,7.8,448.27,0,113405],[3,133,171070,37.4,4.0,155.68,0,108032],[3,226,256931,57.8,9.0,374.52,1,171378]],"DEPT-077":[[1,39,34261,8.7,1.6,74.09,0,21199],[1,44,51704,6.9,1.6,76.44,0,34768],[2,60,61211,12.9,1.7,97.82,0,35752],[2,86,67768,22.2,3.6,199.42,0,39860],[2,62,65926,19.0,3.1,99.68,0,49357],[2,63,78383,10.5,1.6,80.56,0,45985],[2,107,105968,21.1,4.4,170.19,0,56427],[2,124,116364,26.6,4.3,247.63,0,72710],[2,118,112648,19.6,5.6,251.92,0,67153],[2,159,133262,34.3,8.4,416.64,0,96076]],"DEPT-078":[[3,146,155182,46.4,4.0,180.4,0,110084],[3,91,94705,18.9,2.4,86.31,0,56120],[3,195,187749,59.8,7.8,280.37,0,108263],[3,203,179471,60.3,8.7,408.91,0,100864],[3,121,128036,32.9,6.0,342.31,0,87900],[3,147,166175,48.1,4.3,213.87,0,108319],[3,226,196251,49.9,7.1,259.07,0,122820],[4,242,209642,79.3,7.4,335.5,1,161655],[4,242,272054,92.2,12.8,414.25,0,182443],[4,244,231300,73.9,10.6,361.66,0,134236]],"DEPT-079":[[2,62,70781,10.4,2.4,86.67,0,51209],[2,131,150989,19.4,3.8,185.61,0,97971],[1,31,38306,6.2,1.3,54.36,0,28620],[2,113,110485,20.7,2.7,124.04,0,58208],[2,83,68052,24.8,4.2,158.59,0,44838],[2,100,92046,28.2,3.6,131.31,0,47339],[2,100,90898,37.0,2.5,110.94,0,49475],[2,77,74025,13.7,1.6,54.13,0,40521],[2,151,172579,37.4,4.5,194.06,0,120608],[2,120,125303,37.9,3.6,140.42,0,99106]],"DEPT-080":[[3,202,181449,71.3,8.4,439.12,0,92831],[3,185,208360,54.6,4.2,144.15,0,156977],[3,136,146841,33.0,3.3,135.83,0,100886],[3,176,151287,25.2,6.8,379.09,0,88300],[3,206,209670,40.4,10.0,551.22,0,136276],[3,110,138405,14.8,5.6,230.18,0,91274],[3,154,170961,49.7,7.3,377.03,0,117558],[4,314,358011,44.5,9.1,468.5,0,236048],[3,203,203637,70.3,6.7,295.21,0,135532],[4,202,199554,70.8,10.4,355.22,0,144150]],"DEPT-081":[[3,216,214476,57.1,6.9,307.47,0,127439],[3,158,130610,52.0,4.2,182.27,0,79285],[3,124,96348,32.0,3.5,157.24,0,58316],[3,102,71088,19.0,2.6,125.81,0,44481],[3,164,187079,26.4,7.7,299.08,0,143205],[3,117,100331,41.1,4.3,162.06,0,55130],[3,112,147637,34.5,3.0,100.14,0,97753],[4,158,164056,39.9,4.2,220.12,0,121516],[3,170,132793,50.4,4.7,207.3,0,79250],[4,227,204778,61.9,7.9,397.01,0,139785]],"DEPT-082":[[2,61,76587,12.6,2.4,101.86,0,48568],[2,95,89163,29.9,3.8,141.88,0,64307],[3,151,153776,37.7,3.8,161.31,0,99542],[3,94,95819,28.4,3.3,122.71,0,56237],[3,160,150418,30.8,6.6,271.42,0,101990],[3,186,138877,42.5,7.4,251.44,0,84377],[3,230,297908,74.6,5.1,238.29,1,185395],[3,154,136986,57.2,7.4,329.71,0,97777],[3,174,145620,53.4,7.6,421.96,0,110705],[4,149,147601,31.1,7.4,318.75,0,93860]],"DEPT-083":[[3,92,93548,31.4,4.5,157.68,0,72206],[2,102,123581,32.2,5.1,203.67,0,73076],[3,131,168517,43.6,3.0,148.71,0,118062],[3,111,99425,38.2,3.5,199.03,0,57376],[3,124,105221,36.3,6.1,313.94,0,76045],[3,129,109893,26.6,3.0,135.84,0,70650],[3,119,129207,18.9,2.8,118.98,0,95356],[3,110,119474,35.3,4.5,251.55,0,90812],[4,329,231158,45.5,8.8,378.97,1,153151],[4,226,236728,33.7,7.3,340.34,1,149389]],"DEPT-084":[[3,123,118143,16.3,3.1,118.47,0,70535],[3,186,189798,48.2,5.0,194.5,0,131918],[3,183,151340,47.1,9.8,342.16,0,112018],[4,290,252123,39.5,9.2,371.81,0,162364],[3,111,138418,17.0,2.5,82.64,0,89484],[3,130,135017,34.5,6.5,214.97,0,69277],[4,202,212218,42.2,9.9,554.51,0,127767],[4,223,242494,52.1,6.9,290.18,0,147747],[4,255,217221,42.2,11.1,388.48,0,136186],[5,176,194617,48.9,5.5,205.88,0,141206]],"DEPT-085":[[2,56,57941,7.6,2.0,95.34,0,33739],[2,87,75501,18.3,2.3,97.99,0,41955],[3,176,170400,57.4,8.5,336.22,0,87670],[2,62,73911,9.2,1.3,68.13,0,48430],[2,101,86441,32.3,4.4,243.03,0,62602],[3,203,172671,66.0,6.4,208.39,0,92488],[3,183,203885,60.4,8.0,460.03,0,143224],[3,228,221961,53.1,12.5,451.2,1,151555],[3,128,111577,26.3,3.6,118.2,0,86666],[3,234,236981,35.3,6.2,333.47,1,142838]],"DEPT-086":[[2,79,106106,26.7,4.1,195.44,0,68852],[2,125,107993,34.5,5.1,174.25,0,69818],[2,119,116284,33.8,4.6,179.21,0,62245],[2,79,88518,28.3,2.0,96.35,0,55525],[3,160,112294,49.4,6.9,344.99,0,75016],[3,146,123917,41.6,6.0,340.92,0,85575],[3,176,157846,47.3,6.3,223.17,0,85295],[3,180,194941,38.4,8.4,282.74,0,147577],[3,129,129904,37.6,4.3,155.35,0,78523],[3,258,259486,44.0,6.5,372.37,0,148811]],"DEPT-087":[[2,143,135110,45.0,4.2,194.72,0,96345],[2,102,89287,34.7,2.8,157.01,0,66332],[2,80,74467,14.3,4.2,180.26,0,45633],[2,79,74640,26.5,2.6,123.28,0,42787],[2,90,117310,29.2,2.7,131.98,0,76229],[2,111,123659,18.3,2.6,110.26,0,75598],[2,128,114905,23.1,5.5,213.19,0,80436],[3,101,108046,15.9,2.2,83.64,0,67653],[3,204,152263,54.5,9.9,488.8,0,96667],[3,223,237513,61.0,10.5,573.84,0,154971]],"DEPT-088":[[2,67,62868,19.8,3.1,145.99,0,48347],[3,178,173947,43.2,7.5,276.29,0,106415],[3,211,251835,48.1,7.0,353.33,0,173365],[3,160,172409,52.9,5.8,328.49,0,119764],[3,146,102901,44.4,3.2,179.79,0,69867],[3,169,150448,36.7,4.7,241.65,0,112950],[3,186,171547,53.6,4.9,210.31,0,131378],[3,250,260943,40.3,7.3,286.43,1,184984],[3,148,133260,20.8,6.4,249.85,0,104691],[3,238,246590,57.0,5.5,185.3,0,142344]],"DEPT-089":[[3,202,247455,50.1,6.6,356.08,0,162606],[2,144,120242,41.0,4.4,215.09,0,89686],[2,148,167042,39.3,4.4,147.73,0,121542],[3,202,166049,68.6,6.1,214.67,0,92866],[3,127,153059,41.0,5.8,312.99,0,102685],[4,161,187279,23.0,5.9,275.42,0,136696],[3,104,111420,32.9,4.0,175.74,0,66562],[4,229,205036,31.9,9.0,402.84,0,131297],[4,281,311323,61.1,9.5,351.73,1,234474],[4,239,261650,76.5,6.4,263.49,1,186999]],"DEPT-090":[[1,46,41526,15.8,2.3,78.2,0,30747],[2,64,67972,10.7,1.7,67.18,0,38943],[2,71,59638,15.3,2.5,114.48,0,37257],[2,124,105519,40.9,3.2,155.31,0,68377],[2,113,124513,17.6,5.4,278.61,0,76413],[2,73,57046,20.3,3.7,123.42,0,40330],[2,78,64780,21.0,2.7,93.7,0,45778],[2,129,134434,39.4,2.9,100.31,0,72204],[2,171,129540,49.6,7.5,390.48,0,80452],[2,126,158260,30.0,6.6,342.13,0,98241]],"DEPT-091":[[2,81,76821,17.9,3.9,185.94,0,57366],[2,101,86402,34.8,3.5,130.74,0,64734],[3,217,258159,51.9,9.1,371.73,1,175485],[3,151,177536,34.7,6.2,305.99,0,114823],[2,121,122430,31.9,6.4,239.55,0,72192],[3,113,91293,17.6,3.5,112.88,0,63621],[2,67,77839,18.6,3.1,119.69,0,52352],[3,162,164925,26.3,4.0,223.95,0,96327],[3,257,298844,39.1,8.3,377.13,1,188967],[3,230,185893,83.6,11.8,461.84,0,99974]],"DEPT-092":[[3,97,113417,34.9,4.6,226.63,0,78721],[2,58,51668,10.6,1.4,73.73,0,37296],[2,143,110062,26.3,4.7,176.07,0,64785],[3,226,236539,38.5,5.1,235.68,0,182832],[3,220,197669,64.4,7.2,406.0,0,134056],[3,196,167129,60.3,9.4,543.41,0,117086],[3,160,189806,51.6,8.4,401.75,0,130155],[4,328,352769,50.9,16.0,640.46,1,232321],[3,165,179865,44.1,6.2,244.24,0,121519],[3,202,226713,35.4,8.1,338.69,0,150674]],"DEPT-093":[[4,286,302228,75.3,8.5,316.83,0,180417],[4,187,199596,33.2,5.9,248.85,0,137695],[4,249,269210,64.0,10.0,380.37,0,169132],[4,227,204375,58.4,5.0,257.78,0,137417],[4,164,147867,60.9,7.6,286.86,0,99245],[4,206,192241,42.1,6.1,258.27,0,99499],[5,364,425350,57.4,15.2,876.01,1,275704],[4,335,292861,95.4,16.0,812.74,1,151828],[5,358,344791,79.4,8.6,458.36,0,173647],[5,313,273483,52.4,11.1,472.3,1,169773]]},"workload":[{"workload":"Copilot Chat","interactions30d":6846,"sharePct":25.0},{"workload":"Teams","interactions30d":6025,"sharePct":22.0},{"workload":"Outlook","interactions30d":4929,"sharePct":18.0},{"workload":"Word","interactions30d":3560,"sharePct":13.0},{"workload":"Excel","interactions30d":2465,"sharePct":9.0},{"workload":"PowerPoint","interactions30d":1643,"sharePct":6.0},{"workload":"SharePoint/OneDrive","interactions30d":1095,"sharePct":4.0},{"workload":"Copilot Studio/Agents","interactions30d":823,"sharePct":3.0}],"useCase":[{"category":"Email Drafting","interactions30d":4929,"sharePct":18.0},{"category":"Summarisation","interactions30d":4656,"sharePct":17.0},{"category":"Document Drafting","interactions30d":3286,"sharePct":12.0},{"category":"Meeting Preparation","interactions30d":2739,"sharePct":10.0},{"category":"Research","interactions30d":2739,"sharePct":10.0},{"category":"Data Analysis","interactions30d":2465,"sharePct":9.0},{"category":"Presentation Creation","interactions30d":1643,"sharePct":6.0},{"category":"Guarantee Analysis","interactions30d":1643,"sharePct":6.0},{"category":"Financing Analysis","interactions30d":1369,"sharePct":5.0},{"category":"Risk/Compliance Review","interactions30d":1095,"sharePct":4.0},{"category":"Agent/Workflow Assistance","interactions30d":822,"sharePct":3.0}],"gov":[{"eventType":"DLP Policy Match","count30d":18,"severity":"Medium"},{"eventType":"Sensitive Data Detection","count30d":11,"severity":"High"},{"eventType":"Blocked Connector / Action","count30d":7,"severity":"Medium"},{"eventType":"External Data Interaction Review","count30d":9,"severity":"Low"},{"eventType":"Policy Exception","count30d":3,"severity":"High"}]};
+(function(){
+"use strict";
+const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MONTHS = D.months, NM = MONTHS.length;
+const MLAB = ['Jan 2026','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'];
+const MFULL = ['January','February','March','April','May','June','July','August','September','October'];
+const SEAT = 145, CREDIT = 0.12;
+const SHORT = {"Business Division":"Business","Finance, Transformation and Operations (FTO)":"FTO","Risk Management":"Risk Management","Compliance & Integrity":"Compliance & Integrity","Information Technology":"IT","Finance & Procurement":"Finance & Procurement","Internal Audit":"Internal Audit","Legal & Company Secretarial":"Legal & Co Sec","HR Management & Administration":"HR & Admin","Corporate Strategy & Development":"Corporate Strategy","Investment":"Investment"};
+const DIVS = [...new Set(D.depts.map(d=>d.div))];
+const state = {div:'all', adoptMode:'pct', valueMode:'total', tokMode:'total'};
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const lerp = (a,b,t)=>a+(b-a)*t;
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+function tween(dur, fn, done){
+  if(REDUCE){ fn(1); done&&done(); return; }
+  const t0 = performance.now();
+  (function step(now){ const p=Math.min(1,(now-t0)/dur); fn(ease(p)); if(p<1) requestAnimationFrame(step); else done&&done(); })(t0);
+}
+const int = v => Math.round(v).toLocaleString('en-US');
+const rmk = v => Math.abs(v)>=1000 ? 'RM'+(v/1000).toFixed(1)+'k' : 'RM'+Math.round(v).toLocaleString('en-US');
+const chg = v => (v>=0?'up ':'down ')+Math.abs(v).toFixed(0)+'%';
+const pct = (v,d=1) => v.toFixed(d)+'%';
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function niceStep(range, n){ const raw=range/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
+function ticks(min,max,n=4){ const s=niceStep(max-min,n); const out=[]; for(let v=Math.ceil(min/s)*s; v<=max+1e-9; v+=s) out.push(+v.toFixed(6)); return out; }
+function niceMax(v,n=4){ const s=niceStep(v,n); return Math.ceil(v/s)*s; }
+function countText(el, from, to, fmt, dur=900){ el._v = to; tween(dur, p=>{ el.textContent = fmt(lerp(from,to,p)); }); }
+
+/* ---------- aggregation ---------- */
+function agg(div){
+  const ds = div==='all' ? D.depts : D.depts.filter(d=>d.div===div);
+  const s = k => ds.reduce((a,d)=>a+d[k],0);
+  const keys=['active','prompts','tokens','credits','hours','value','inc','inT'];
+  const m={}; keys.forEach(k=>m[k]=new Array(NM).fill(0));
+  ds.forEach(d=>D.m[d.id].forEach((row,i)=>keys.forEach((k,j)=>m[k][i]+=row[j])));
+  const prem=s('prem');
+  m.cost = m.credits.map(c=>prem*SEAT+c*CREDIT);
+  m.rate = m.inc.map((v,i)=>v/m.prompts[i]*1000);
+  m.ppu = m.prompts.map((v,i)=>v/m.active[i]);
+  m.out = m.tokens.map((v,i)=>v-m.inT[i]);
+  m.tpp = m.tokens.map((v,i)=>v/m.prompts[i]);
+  const a = {ds, head:s('head'), active:s('active'), prem, premActive:s('premActive'), prompts:s('prompts'), tokens:s('tokens'), value:s('value'), hours:s('hours'), inc:s('inc'), credits:s('credits'), m};
+  a.cost = prem*SEAT + a.credits*CREDIT;
+  a.roi = (a.value-a.cost)/a.cost*100;
+  a.adopt = a.active/a.head*100;
+  return a;
+}
+const ORG = agg('all');
+const DIVAGG = Object.fromEntries(DIVS.map(v=>[v,agg(v)]));
+
+/* ---------- Horizontal bar / dot plot ---------- */
+class HBar{
+  constructor(host, opt={}){
+    this.host=host; this.o=opt; this.rows=new Map(); this.ROW=30;
+    host.classList.add('hb'); if(opt.dots) host.classList.add('dots');
+    this.plot=document.createElement('div'); this.plot.className='plot'; host.appendChild(this.plot);
+    this.axis=document.createElement('div'); this.plot.appendChild(this.axis);
+    this.ref=document.createElement('div'); this.ref.className='ref'; this.refl=document.createElement('div'); this.refl.className='refl';
+    this.plot.append(this.ref,this.refl);
+    if(opt.brk){ const b=document.createElement('span'); b.className='brk'; b.textContent='≁'; b.setAttribute('aria-hidden','true'); this.plot.appendChild(b); }
+  }
+  set(items, cfg, mode){
+    this.last={items,cfg};
+    const R=this.ROW, min=cfg.min||0, span=cfg.max-min, X=v=>Math.max(0,(v-min)/span*100);
+    const sorted = cfg.keepOrder ? items : [...items].sort((a,b)=>b.v-a.v);
+    this.host.style.height = (26 + sorted.length*R + (cfg.ref?24:6))+'px';
+    this.axis.innerHTML = cfg.ticks.map((t,i)=>`<i class="gl${t===0?' zero':''}" style="left:${X(t)}%"></i><span class="tk${i===0&&!this.o.brk?'':''}" style="left:${X(t)}%">${cfg.tickFmt(t)}</span>`).join('');
+    if(cfg.ref){ this.ref.style.left=X(cfg.ref.v)+'%'; this.refl.style.left=X(cfg.ref.v)+'%'; this.refl.textContent=cfg.ref.label; this.ref.hidden=this.refl.hidden=false; }
+    else this.ref.hidden=this.refl.hidden=true;
+    const play = mode==='play' && !REDUCE;
+    if(play){ this.host.classList.add('pre'); }
+    sorted.forEach((it,i)=>{
+      let r=this.rows.get(it.k);
+      if(!r){
+        r={lab:document.createElement('div'),bg:document.createElement('div'),b:document.createElement('div'),val:document.createElement('div'),v:0};
+        r.lab.className='lab'; r.bg.className='bg'; r.val.className='val';
+        this.host.appendChild(r.lab); this.plot.insertBefore(r.bg,this.ref); this.plot.insertBefore(r.b,this.ref); this.plot.appendChild(r.val);
+        this.rows.set(it.k,r);
+      }
+      const top=26+i*R;
+      r.lab.style.top=top+'px'; r.lab.textContent=it.label; r.lab.classList.toggle('on',!!it.on);
+      r.b.className='b '+(it.c||'')+(it.sel?' sel':'');
+      r.b.setAttribute('role','img'); r.b.setAttribute('aria-label',it.label+': '+cfg.fmt(it.v));
+      r.bg.style.top=r.b.style.top=r.val.style.top=top+'px';
+      r.val.style.top=(top)+'px';
+      r.val.classList.toggle('on',!!it.on);
+      r.bg.hidden = it.bg==null;
+      const w=X(it.v);
+      if(play){ r.b.style.width='0%'; r.val.style.left='0%'; r.bg.style.width='0%'; }
+      r._w=w; r._bgw = it.bg!=null ? X(it.bg) : 0; r._it=it; r._top=top;
+      const from = play?0:r.v; r.v=it.v;
+      const fmt = v => cfg.fmt(v)+(it.extra?it.extra:'');
+      if(REDUCE) r.val.textContent=fmt(it.v); else countText(r.val, from, it.v, fmt, play?900:700);
+    });
+    const apply=(stagger)=>{
+      sorted.forEach((it,i)=>{ const r=this.rows.get(it.k);
+        const d = stagger? (i*70)+'ms' : '0ms';
+        r.b.style.transitionDelay=r.bg.style.transitionDelay=r.val.style.transitionDelay = stagger? `0ms,${d},0ms` : '';
+        r.b.style.width=r._w+'%'; r.bg.style.width=r._bgw+'%'; r.val.style.left=r._w+'%'; });
+    };
+    if(play){
+      void this.host.offsetWidth;
+      requestAnimationFrame(()=>{ this.host.classList.remove('pre'); apply(true);
+        const n=sorted.length; clearTimeout(this._t); this._t=setTimeout(()=>sorted.forEach(it=>{const r=this.rows.get(it.k); r.b.style.transitionDelay=r.bg.style.transitionDelay=r.val.style.transitionDelay='';}), 900+n*70); });
+    } else apply(false);
+  }
+  replay(){ if(this.last) this.set(this.last.items,this.last.cfg,'play'); }
+}
+
+/* ---------- Line chart (SVG, redrawn per frame) ---------- */
+class Line{
+  constructor(host,opt={}){ this.host=host; this.o=opt; this.reveal=1; this.cur=null;
+    let w=0; new ResizeObserver(()=>{ if(host.clientWidth!==w){ w=host.clientWidth; this.draw(); } }).observe(host); }
+  set(series,cfg,mode){
+    const target={series:series.map(s=>({...s,values:[...s.values]})),cfg};
+    if(!this.cur||mode==='init'||REDUCE){ this.cur=target; this.reveal=1; this.draw(); return; }
+    if(mode==='play'){ this.cur=target; this.reveal=0; this.draw(); tween(1400,p=>{this.reveal=p; this.draw();}); return; }
+    const from=this.cur;
+    tween(700,p=>{
+      this.cur={cfg:{...target.cfg,yMin:lerp(from.cfg.yMin,target.cfg.yMin,p),yMax:lerp(from.cfg.yMax,target.cfg.yMax,p),
+        refs:(target.cfg.refs||[]).map((r,j)=>({...r,v:lerp((from.cfg.refs&&from.cfg.refs[j]?from.cfg.refs[j].v:r.v),r.v,p)}))},
+        series:target.series.map((s,j)=>({...s,values:s.values.map((v,i)=>lerp(from.series[j]?from.series[j].values[i]:v,v,p))}))};
+      this.draw();
+    },()=>{this.cur=target; this.draw();});
+  }
+  replay(){ if(this.cur) this.set(this.cur.series,this.cur.cfg,'play'); }
+  draw(){
+    if(!this.cur) return;
+    const {series,cfg}=this.cur, W=Math.max(260,this.host.clientWidth), H=this.o.height||250;
+    const m={l:4,r:cfg.rPad||46,t:14,b:30}, pw=W-m.l-m.r, ph=H-m.t-m.b;
+    const x=i=>m.l+ (NM===1?0:i/(NM-1))*pw, y=v=>m.t+ph-(v-cfg.yMin)/(cfg.yMax-cfg.yMin)*ph;
+    const rv=this.reveal, uid=this.host.id;
+    let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.aria||'')}"><defs><clipPath id="clip-${uid}"><rect x="0" y="0" width="${m.l+pw*rv+6}" height="${H}"/></clipPath></defs>`;
+    cfg.ticks.forEach(t=>{ if(t<cfg.yMin-1e-9||t>cfg.yMax+1e-9) return; const yy=y(t);
+      s+=`<line class="${t===cfg.yMin&&!cfg.brk?'base':'gl'}" x1="${m.l}" x2="${W-m.r+40}" y1="${yy}" y2="${yy}"/><text x="${W-2}" y="${yy-4}" text-anchor="end">${cfg.tickFmt(t)}</text>`; });
+    if(cfg.brk){ s+=`<line class="base" x1="${m.l}" x2="${W-m.r+40}" y1="${m.t+ph}" y2="${m.t+ph}"/><text class="sym" x="${W-m.r+12}" y="${m.t+ph+5}" text-anchor="middle">≁</text>`; }
+    const every = W<420?3:(W<600?2:1);
+    for(let i=0;i<NM;i++){ if(i%every!==0 && i!==NM-1) continue; s+=`<text x="${x(i)}" y="${H-10}" text-anchor="${i===0?'start':(i===NM-1?'end':'middle')}">${MLAB[i]}</text>`; }
+    (cfg.refs||[]).forEach(r=>{ const yy=y(r.v), x2=m.l+pw*Math.min(1,rv*1.15);
+      s+=`<line class="ref" x1="${m.l}" x2="${x2}" y1="${yy}" y2="${yy}"/>`;
+      if(rv>.7) s+=`<text class="refl" x="${r.right?W-m.r-4:m.l+2}" text-anchor="${r.right?'end':'start'}" y="${r.below?yy+15:yy-6}" style="opacity:${Math.min(1,(rv-.7)/.3)}">${esc(r.label)}</text>`; });
+    s+=`<g clip-path="url(#clip-${uid})">`;
+    series.forEach(se=>{ const d=se.values.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join('');
+      s+=`<path class="ln ${se.c}" d="${d}"${se.dash?' stroke-dasharray="6 4"':''}/>`; });
+    s+=`</g>`;
+    series.forEach(se=>{ if(!se.dots) return; se.values.forEach((v,i)=>{ const at=i/(NM-1), k=Math.max(0,Math.min(1,(rv-at)*8+ (rv>=1?1:0)));
+      if(k<=0) return; s+=`<circle class="pt ${se.c}" cx="${x(i)}" cy="${y(v)}" r="${(i===NM-1?4.5:2.6)*Math.min(1,k)}"/>`; }); });
+    (cfg.anns||[]).forEach(a=>{ if(rv < a.i/(NM-1)) return; const se=series[a.s||0], v=se.values[a.i], xx=x(a.i), yy=y(v);
+      s+=`<circle class="ptring" cx="${xx}" cy="${yy}" r="6" stroke="var(--ink)"/><text class="ann" x="${xx+(a.dx||0)}" y="${yy+(a.dy||-12)}" text-anchor="${a.anchor||'middle'}">${esc(a.text)}</text>`; });
+    if(rv>.92){ const op=Math.min(1,(rv-.92)/.08);
+      series.forEach(se=>{ if(!se.label) return; const v=se.values[NM-1];
+        s+=`<text class="lbl ${se.c}" x="${x(NM-1)-8}" y="${y(v)+(se.lpos==='below'?18:-10)}" text-anchor="end" style="opacity:${op}">${esc(se.label(v))}</text>`; }); }
+    s+='</svg>';
+    this.host.innerHTML=s;
+  }
+}
+
+/* ---------- Scatter ---------- */
+class Scatter{
+  constructor(host){ this.host=host; this.sel='all'; let w=0;
+    new ResizeObserver(()=>{ if(host.clientWidth!==w){ w=host.clientWidth; this.draw(); } }).observe(host); }
+  draw(){
+    const W=Math.max(260,this.host.clientWidth), H=300, m={l:4,r:46,t:14,b:30}, pw=W-m.l-m.r, ph=H-m.t-m.b;
+    const pts=D.depts, xMax=niceMax(Math.max(...pts.map(d=>d.prompts))), yMax=niceMax(Math.max(...pts.map(d=>d.value)));
+    const X=v=>m.l+v/xMax*pw, Y=v=>m.t+ph-v/yMax*ph;
+    const n=pts.length, mx=pts.reduce((a,d)=>a+d.prompts,0)/n, my=pts.reduce((a,d)=>a+d.value,0)/n;
+    const b=pts.reduce((a,d)=>a+(d.prompts-mx)*(d.value-my),0)/pts.reduce((a,d)=>a+(d.prompts-mx)**2,0), a0=my-b*mx;
+    const x0=100, x1=xMax*.98;
+    const sel=this.sel, inSel=d=>sel==='all'||d.div===sel;
+    const pool=pts.filter(inSel).sort((p,q)=>q.value-p.value), top=new Set(pool.slice(0, sel==='all'?5:3).map(d=>d.id));
+    let s=`<svg width="${W}" height="${H}" role="img" aria-label="Scatter of prompts against productivity value for 93 departments">`;
+    ticks(0,yMax,4).forEach(t=>{ const yy=Y(t); s+=`<line class="${t===0?'base':'gl'}" x1="${m.l}" x2="${W}" y1="${yy}" y2="${yy}"/><text x="${W-2}" y="${yy-4}" text-anchor="end">${t===0?'0':'RM'+(t/1000).toFixed(t%1000?1:0)+'k'}</text>`; });
+    ticks(0,xMax,5).forEach((t,i)=>{ s+=`<text x="${X(t)}" y="${H-10}" text-anchor="${i===0?'start':'middle'}">${int(t)}${i===0?'':''}</text>`; });
+    s+=`<text x="${X(xMax)}" y="${H-10}" text-anchor="end"></text>`;
+    s+=`<line class="trend" x1="${X(x0)}" y1="${Y(a0+b*x0)}" x2="${X(x1)}" y2="${Y(a0+b*x1)}"/>`;
+    s+=`<g class="dots">`;
+    pts.forEach((d,i)=>{ const c=top.has(d.id)?'hi':(inSel(d)?'':'fade');
+      s+=`<circle class="dot ${c}" cx="${X(d.prompts)}" cy="${Y(d.value)}" r="${top.has(d.id)?5.5:4.2}" style="transition-delay:${this.playing?(i*9)+'ms':'0ms'}"><title>${esc(d.name)}: ${int(d.prompts)} prompts, ${rmk(d.value)}</title></circle>`; });
+    s+=`</g>`;
+    const placed=[];
+    pool.filter(d=>top.has(d.id)).forEach(d=>{ let xx=X(d.prompts), yy=Y(d.value), anchor='end', tx=xx-9;
+      if(xx<W*0.45){anchor='start'; tx=xx+9;}
+      let ty=yy+4; placed.forEach(p=>{ if(Math.abs(p-ty)<15) ty=p+15; }); placed.push(ty);
+      s+=`<text class="dl" x="${tx}" y="${ty}" text-anchor="${anchor}">${esc(d.name)} <tspan class="dlv">${rmk(d.value)}</tspan></text>`; });
+    s+=`<text x="${m.l}" y="${m.t-2}" style="font-size:11.5px">Value ↑</text><text x="${X(xMax)-44}" y="${H-24}" text-anchor="end" style="font-size:11.5px">Prompts →</text>`;
+    s+='</svg>';
+    this.host.innerHTML=s;
+    this.host.classList.add('sc');
+  }
+  setSel(v){ this.sel=v; this.draw(); }
+  replay(){ if(REDUCE){ this.draw(); return; } this.playing=true; this.host.classList.add('pre'); this.draw(); void this.host.offsetWidth;
+    requestAnimationFrame(()=>{ this.host.classList.remove('pre'); setTimeout(()=>{this.playing=false;},1400); }); }
+}
+
+/* ---------- charts ---------- */
+const cA=new Line($('cA')), cF=new Line($('cF')), cG1=new Line($('cG1'),{height:200}), cG2=new Line($('cG2'),{height:200}), cI=new Line($('cI')), cT1=new Line($('cT1'),{height:200}), cT2=new Line($('cT2'),{height:200});
+const cB=new HBar($('cB')), cD=new HBar($('cD')), cE=new HBar($('cE')), cH=new HBar($('cH')), cJ=new HBar($('cJ')), cK=new HBar($('cK'),{dots:true,brk:true});
+const cC=new Scatter($('cC')), cU=new HBar($('cU'),{});
+$('cU').style.setProperty('--vw','110px');
+const CH = {active:[cA], adopt:[cB], scatter:[cC], value:[cD], usecase:[cE], roi:[cF], workload:[cH], consume:[cG1,cG2], tokens:[cT1,cT2], tokdiv:[cU], incrate:[cI], events:[cJ], licence:[cK]};
+
+function render(mode){
+  const sel=state.div, a = sel==='all'?ORG:DIVAGG[sel], name = sel==='all'?'the organisation':SHORT[sel];
+  $('filterNote').textContent = sel==='all' ? 'Showing the whole organisation' : `Showing ${sel} · ${a.ds.length} departments, ${a.head} employees`;
+  /* KPIs */
+  const k1=a.adopt, j0=a.m.active[0];
+  setK('k1',k1,v=>pct(v),mode);
+  $('k1c').innerHTML=`<b>${int(a.active)}</b> of ${int(a.head)} people · <span class="up">${a.active>=j0?'+':''}${int(a.active-j0)}</span> users since Jan`;
+  setK('k2',a.value,rmk,mode);
+  const vchg=(a.value/a.m.value[0]-1)*100;
+  $('k2c').innerHTML=`<b>${int(a.hours)}</b> hours saved · <span class="up">${vchg>=0?'+':''}${vchg.toFixed(0)}%</span> vs Jan`;
+  setK('k3',a.cost,rmk,mode);
+  $('k3c').innerHTML=`Return on cost <span class="up">${a.roi>=0?'+':''}${a.roi.toFixed(0)}%</span> · ${(a.tokens/1e6).toFixed(1)}M tokens`;
+  const rate=a.inc/a.prompts*1000;
+  setK('k4',rate,v=>v.toFixed(2),mode);
+  $('k4c').innerHTML=`<b>${a.inc}</b> incidents · <b>${pct(a.premActive/a.prem*100,0)}</b> of premium seats used`;
+  const ratio=ORG.value/ORG.cost; $('hRoi').textContent='RM'+ratio.toFixed(2);
+
+  /* A: active users */
+  const act=a.m.active, up=act.slice(1).filter((v,i)=>v>act[i]).length, gr=(act[NM-1]/act[0]-1)*100;
+  $('hA').textContent = up===NM-1 ? `Active users have grown every month, ${chg(gr)} since January` : `Active users are ${chg(gr)} since January, rising in ${up} of ${NM-1} months`;
+  $('sA').textContent = `Monthly active Copilot users, Jan–Oct 2026, ${sel==='all'?'all divisions':sel}, number of people`;
+  const yA=niceMax(a.head*1.08);
+  cA.set([{c:'hi',values:act,dots:true,label:v=>`${int(v)} active`,lpos:'below'}],
+    {yMin:0,yMax:yA,ticks:ticks(0,yA,4),tickFmt:int,refs:[{v:a.head,label:`Eligible employees: ${int(a.head)}`}],aria:'Monthly active users line chart',
+     anns:[{i:0,text:int(act[0]),dy:-12,anchor:'start',dx:-2}]}, mode);
+
+  /* B: adoption by division */
+  const divRows=DIVS.map(v=>({v,a:DIVAGG[v]}));
+  const asc=[...divRows].sort((p,q)=>p.a.adopt-q.a.adopt), low=new Set(asc.slice(0,2).map(r=>r.v));
+  const hiB = r => sel==='all' ? low.has(r.v) : r.v===sel;
+  if(sel==='all') $('hB').textContent=`Every division is above 70%, but ${SHORT[asc[0].v]} and ${SHORT[asc[1].v]} trail the average`;
+  else $('hB').textContent=`${SHORT[sel]} is at ${pct(a.adopt)}, ${a.adopt>=ORG.adopt?'above':'below'} the ${pct(ORG.adopt)} organisation average`;
+  if(state.adoptMode==='pct'){
+    $('sB').textContent='Employees active in last 30 days, by division, % of headcount';
+    cB.set(divRows.map(r=>({k:r.v,label:SHORT[r.v],v:r.a.adopt,c:hiB(r)?'hi':'',on:hiB(r)})),
+      {max:100,ticks:[0,25,50,75,100],tickFmt:t=>t+'%',fmt:v=>pct(v),ref:{v:ORG.adopt,label:`Organisation average ${pct(ORG.adopt)}`}}, mode);
+  } else {
+    const mx=niceMax(Math.max(...divRows.map(r=>r.a.head)));
+    $('sB').textContent='Employees active in last 30 days, by division, number of people (track = headcount)';
+    cB.set(divRows.map(r=>({k:r.v,label:SHORT[r.v],v:r.a.active,bg:r.a.head,c:hiB(r)?'hi':'',on:hiB(r),extra:` of ${r.a.head}`})),
+      {max:mx,ticks:ticks(0,mx,4),tickFmt:int,fmt:int}, mode);
+  }
+
+  /* C: scatter */
+  const pool=(sel==='all'?D.depts:a.ds).slice().sort((p,q)=>q.value-p.value), lead=pool[0];
+  $('hC').textContent = sel==='all' ? `Value tracks volume: ${lead.name} leads at ${rmk(lead.value)} a month` : `In ${SHORT[sel]}, ${lead.name} creates the most value at ${rmk(lead.value)} a month`;
+  if(mode==='play') cC.sel=sel, cC.replay(); else cC.setSel(sel);
+
+  /* D: value by division */
+  const per=state.valueMode==='per';
+  const vRows=divRows.map(r=>({...r,val:per?r.a.value/r.a.active:r.a.value})).sort((p,q)=>q.val-p.val);
+  const topD=new Set(vRows.slice(0,2).map(r=>r.v)), hiD=r=>sel==='all'?topD.has(r.v):r.v===sel;
+  const shareTop=(vRows.slice(0,2).reduce((s,r)=>s+r.a.value,0)/ORG.value*100);
+  if(sel==='all') $('hD').textContent = per ? `Per user, value is similar everywhere; ${SHORT[vRows[0].v]} leads at ${rmk(vRows[0].val)}` : `${SHORT[vRows[0].v]} and ${SHORT[vRows[1].v]} generate ${shareTop.toFixed(0)}% of all value`;
+  else { const sh=a.value/ORG.value*100; $('hD').textContent = per ? `${SHORT[sel]} creates ${rmk(a.value/a.active)} per active user, vs ${rmk(ORG.value/ORG.active)} overall` : `${SHORT[sel]} generates ${sh.toFixed(0)}% of organisation value with ${(a.head/ORG.head*100).toFixed(0)}% of staff`; }
+  $('sD').textContent = per ? 'Estimated productivity value per active user, by division, last 30 days, RM' : 'Estimated productivity value by division, last 30 days, RM';
+  const mxD=niceMax(Math.max(...vRows.map(r=>r.val)));
+  cD.set(vRows.map(r=>({k:r.v,label:SHORT[r.v],v:r.val,c:hiD(r)?'hi':'',on:hiD(r)})),
+    {max:mxD,ticks:ticks(0,mxD,4),tickFmt:t=>t===0?'0':(t>=1000?'RM'+(t/1000)+'k':'RM'+t),fmt:v=>per?'RM'+Math.round(v):rmk(v),
+     ref: per?{v:ORG.value/ORG.active,label:`Organisation ${rmk(ORG.value/ORG.active)}`}:null}, mode);
+
+  /* E: use cases (static) */
+  const core=new Set(['Guarantee Analysis','Financing Analysis']);
+  if(mode!=='update') cE.set(D.useCase.map(u=>({k:u.category,label:u.category,v:u.sharePct,c:core.has(u.category)?'hi':'',on:core.has(u.category)})),
+    {max:20,ticks:[0,5,10,15,20],tickFmt:t=>t+'%',fmt:v=>v.toFixed(0)+'%'}, mode);
+
+  /* F: value vs cost */
+  const val=a.m.value, cost=a.m.cost; let since=-1; for(let i=NM-1;i>=0;i--){ if(val[i]>=cost[i]) since=i; else break; }
+  if(since===0) $('hF').textContent=`Copilot has covered its cost in every month this year`;
+  else if(since>0) $('hF').textContent=`Copilot has paid for itself every month since ${MFULL[since]}`;
+  else $('hF').textContent=`${sel==='all'?'Copilot':SHORT[sel]} has not yet covered its allocated cost in October`;
+  $('sF').textContent=`Estimated productivity value vs incremental AI cost*, per month, ${sel==='all'?'organisation':sel+' (licence cost allocated by seats held)'}, RM thousand`;
+  const lo=Math.min(...val,...cost), hi=Math.max(...val,...cost);
+  const fMin = sel==='all'?20000:Math.max(0,Math.floor(lo*0.7/niceStep(hi,4))*niceStep(hi,4)), fMax=niceMax(hi*1.08);
+  $('fBrk').textContent = fMin>0 ? `. Axis starts at RM${(fMin/1000).toFixed(0)}k` : '';
+  const fAnn = since>0 ? [{i:since,s:0,text:'Value passes cost',dy:34,anchor:'middle'}] : [];
+  cF.set([{c:'dark',values:cost,label:v=>`Cost ${rmk(v)}`,lpos:'below'},{c:'hi',values:val,dots:true,label:v=>`Value ${rmk(v)}`}],
+    {yMin:fMin,yMax:fMax,brk:fMin>0,ticks:ticks(fMin,fMax,4),tickFmt:t=>t===0?'0':'RM'+(t/1000).toFixed(t%1000?1:0)+'k',anns:fAnn,aria:'Value versus cost line chart'}, mode);
+
+  /* H: workload (static) */
+  if(mode!=='update'){ const topW=new Set(['Copilot Chat','Teams']);
+    cH.set(D.workload.map(w=>({k:w.workload,label:w.workload,v:w.sharePct,c:topW.has(w.workload)?'hi':'',on:topW.has(w.workload)})),
+      {max:30,ticks:[0,10,20,30],tickFmt:t=>t+'%',fmt:v=>v.toFixed(0)+'%'}, mode); }
+
+  /* G: consumption small multiples */
+  const cr=a.m.credits, ppu=a.m.ppu, crg=(cr[NM-1]/cr[0]-1)*100, ug=(act[NM-1]/act[0]-1)*100;
+  $('hG').textContent = (crg>ug+5 ? 'Consumption is rising faster than the user base' : crg<ug-5 ? 'Consumption is lagging the user base' : 'Consumption is moving in line with users') + `: credits ${chg(crg)} since January, users ${chg(ug)}`;
+  $('sG').textContent=`Jan–Oct 2026, per month, ${sel==='all'?'all divisions':sel}`;
+  $('crCost').textContent=int(cr[NM-1]*CREDIT);
+  const g1=niceMax(Math.max(...cr)*1.1), g2=niceMax(Math.max(...ppu)*1.15);
+  cG1.set([{c:'hi',values:cr,dots:true,label:v=>int(v)}],{yMin:0,yMax:g1,ticks:ticks(0,g1,3),tickFmt:int,aria:'Credits per month'},mode);
+  const ppuAvg=ppu.reduce((s,v)=>s+v,0)/NM;
+  cG2.set([{c:'hi',values:ppu,dots:true,label:v=>v.toFixed(0)}],{yMin:0,yMax:g2,ticks:ticks(0,g2,3),tickFmt:t=>int(t),refs:[{v:ppuAvg,label:`Jan–Oct average ${ppuAvg.toFixed(0)}`,below:true,right:true}],aria:'Prompts per active user'},mode);
+
+  /* T: tokens */
+  const tk=a.m.tokens, tpp=a.m.tpp, tg=(tk[NM-1]/tk[0]-1)*100, pg=(a.m.prompts[NM-1]/a.m.prompts[0]-1)*100, tppg=(tpp[NM-1]/tpp[0]-1)*100;
+  $('hT').textContent = Math.abs(tppg)<5
+    ? `Token use is ${chg(tg)} since January, driven by more prompts; each prompt still uses about ${int(Math.round(tpp[NM-1]/10)*10)} tokens`
+    : `Token use is ${chg(tg)} since January, faster than prompts (${chg(pg)}), as each prompt uses ${chg(tppg).replace('up','')} ${tppg>0?'more':'fewer'} tokens`;
+  $('sT').textContent=`Jan–Oct 2026, per month, ${sel==='all'?'all divisions':sel}`;
+  const M=v=>(v/1e6).toFixed(v<1e7?2:1)+'M', t1=niceMax(Math.max(...tk)*1.12);
+  cT1.set([{c:'ctx',values:a.m.out,label:v=>`Output ${M(v)}`,lpos:'below'},{c:'hi',values:tk,dots:true,label:v=>`Total ${M(v)}`}],
+    {yMin:0,yMax:t1,ticks:ticks(0,t1,3),tickFmt:t=>t===0?'0':(t/1e6)+'M',aria:'Tokens per month'},mode);
+  const tAvg=a.m.tokens.reduce((s,v)=>s+v,0)/a.m.prompts.reduce((s,v)=>s+v,0), t2=niceMax(Math.max(...tpp)*1.25);
+  cT2.set([{c:'hi',values:tpp,dots:true,label:v=>int(v)}],{yMin:0,yMax:t2,ticks:ticks(0,t2,3),tickFmt:int,
+    refs:[{v:tAvg,label:`Jan–Oct average ${int(tAvg)}`,below:true,right:true}],aria:'Tokens per prompt'},mode);
+
+  /* U: tokens by division */
+  const tper=state.tokMode==='per';
+  const uRows=divRows.map(r=>({...r,val:tper?r.a.tokens/r.a.active:r.a.tokens})).sort((p,q)=>q.val-p.val);
+  const topU=new Set(uRows.slice(0,2).map(r=>r.v)), hiU=r=>sel==='all'?topU.has(r.v):r.v===sel;
+  const uShare=uRows.slice(0,2).reduce((s,r)=>s+r.a.tokens,0)/ORG.tokens*100, orgPer=ORG.tokens/ORG.active;
+  if(sel==='all') $('hU').textContent = tper ? `${SHORT[uRows[0].v]} users consume the most tokens each: ${(uRows[0].val/1000).toFixed(0)}k a month vs ${(orgPer/1000).toFixed(0)}k overall` : `${SHORT[uRows[0].v]} and ${SHORT[uRows[1].v]} consume ${uShare.toFixed(0)}% of all tokens`;
+  else $('hU').textContent = tper ? `${SHORT[sel]} uses ${(a.tokens/a.active/1000).toFixed(0)}k tokens per active user, vs ${(orgPer/1000).toFixed(0)}k overall` : `${SHORT[sel]} consumes ${(a.tokens/ORG.tokens*100).toFixed(0)}% of tokens with ${(a.head/ORG.head*100).toFixed(0)}% of staff`;
+  $('sU').textContent = tper ? 'Tokens per active user by division, last 30 days, thousands' : 'Tokens processed by division, last 30 days, millions';
+  const mxU=niceMax(Math.max(...uRows.map(r=>r.val)));
+  cU.set(uRows.map(r=>({k:r.v,label:SHORT[r.v],v:r.val,c:hiU(r)?'hi':'',on:hiU(r),extra:tper?'':` · ${(r.a.tokens/ORG.tokens*100).toFixed(0)}%`})),
+    {max:mxU,ticks:ticks(0,mxU,4),tickFmt:t=>t===0?'0':(tper?(t/1000)+'k':(t/1e6)+'M'),fmt:v=>tper?(v/1000).toFixed(0)+'k':(v/1e6).toFixed(1)+'M',
+     ref: tper?{v:orgPer,label:`Organisation ${(orgPer/1000).toFixed(0)}k`}:null}, mode);
+
+  /* I: incident rate */
+  const rt=a.m.rate, avg=a.m.inc.reduce((s,v)=>s+v,0)/a.m.prompts.reduce((s,v)=>s+v,0)*1000;
+  const pk=rt.indexOf(Math.max(...rt));
+  if(sel==='all') $('hI').textContent=`The incident rate more than doubled from January to an August peak, and has eased since`;
+  else $('hI').textContent=`${SHORT[sel]}'s incident rate peaked in ${MFULL[pk]} at ${rt[pk].toFixed(2)} per 1,000 prompts`;
+  $('sI').textContent=`Governance incidents per 1,000 prompts, per month, ${sel==='all'?'all divisions':sel}`;
+  const iMax=niceMax(Math.max(...rt)*1.15);
+  cI.set([{c:'hi',values:rt,dots:true,label:v=>v.toFixed(2)}],{yMin:0,yMax:iMax,ticks:ticks(0,iMax,4),tickFmt:t=>t.toFixed(1),
+    refs:[{v:avg,label:`Jan–Oct average ${avg.toFixed(2)}`,below:true,right:true}],anns:[{i:pk,s:0,text:`Peak ${rt[pk].toFixed(2)}`,dy:-12}],aria:'Incident rate line chart'},mode);
+
+  /* J: policy events (static) */
+  if(mode!=='update'){ const sev={High:'hi',Medium:'mid',Low:'lo'};
+    cJ.set(D.gov.map(g=>({k:g.eventType,label:g.eventType,v:g.count30d,c:sev[g.severity],on:g.severity==='High',extra:` · ${g.severity}`})),
+      {max:20,ticks:[0,5,10,15,20],tickFmt:int,fmt:int}, mode); }
+
+  /* K: licence utilisation */
+  const idle=ORG.prem-ORG.premActive, orgU=ORG.premActive/ORG.prem*100;
+  const kRows=divRows.map(r=>({...r,u:r.a.premActive/r.a.prem*100,idle:r.a.prem-r.a.premActive}));
+  const hiK = r => r.u < orgU;
+  if(sel==='all') $('hK').textContent=`${idle} premium seats sat idle in October, about ${rmk(idle*SEAT)} a month that could be reassigned`;
+  else { const kr=kRows.find(r=>r.v===sel); $('hK').textContent= kr.idle ? `${SHORT[sel]} has ${kr.idle} idle premium seat${kr.idle>1?'s':''} (${pct(kr.u,0)} used), worth ${rmk(kr.idle*SEAT)} a month` : `${SHORT[sel]} uses every premium seat it holds; it may need more`; }
+  cK.set(kRows.map(r=>({k:r.v,label:SHORT[r.v],v:r.u,c:hiK(r)?'hi':'',sel:r.v===sel,on:sel==='all'?hiK(r):r.v===sel,extra:r.idle?` · ${r.idle} idle`:' · none idle'})),
+    {min:40,max:100,ticks:[40,60,80,100],tickFmt:t=>t+'%',fmt:v=>pct(v,0),ref:{v:orgU,label:`Organisation ${pct(orgU,0)}`}}, mode);
+}
+
+function setK(id,v,fmt,mode){ const el=$(id), from = mode==='play'?0:(el._v??v); if(REDUCE){ el.textContent=fmt(v); el._v=v; return; } countText(el,from,v,fmt,mode==='play'?1200:700); }
+
+/* ---------- scroll-triggered entry ---------- */
+const played=new WeakSet();
+function playCard(card){ played.add(card); (CH[card.dataset.chart]||[]).forEach(c=>c.replay()); }
+let io=null;
+if(!REDUCE && 'IntersectionObserver' in window){
+  io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting && !played.has(e.target)){ playCard(e.target); } }),{threshold:.25});
+}
+function armAll(){ document.querySelectorAll('.card').forEach(c=>{ played.delete(c); if(io){ io.unobserve(c); io.observe(c); } }); }
+
+/* ---------- controls ---------- */
+const selEl=$('divSel'); DIVS.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; selEl.appendChild(o); });
+selEl.addEventListener('change',()=>{ state.div=selEl.value; render('update'); });
+function seg(a,b,key,va,vb){ const set=v=>{ state[key]=v; a.setAttribute('aria-pressed',v===va); b.setAttribute('aria-pressed',v===vb); render('update'); };
+  a.addEventListener('click',()=>set(va)); b.addEventListener('click',()=>set(vb)); }
+seg($('bPct'),$('bCnt'),'adoptMode','pct','cnt');
+seg($('bTot'),$('bPer'),'valueMode','total','per');
+seg($('bTokT'),$('bTokP'),'tokMode','total','per');
+$('replay').addEventListener('click',()=>{ ['k1','k2','k3','k4'].forEach(id=>{$(id)._v=0;}); render('kpi'); armAll(); if(!io) render('init'); });
+
+render('init');
+if(!REDUCE){ ['k1','k2','k3','k4'].forEach(id=>{$(id)._v=0;}); render('kpi'); }
+armAll();
+})();
+</script>
+
+</body></html>
