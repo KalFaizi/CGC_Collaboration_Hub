@@ -30,7 +30,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 #copilot .wrap{max-width:1180px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
 #copilot header.top{display:flex;flex-direction:column;gap:8px;border-top:4px solid var(--hi);padding-top:16px}
 #copilot .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--hi)}
-#copilot h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.6vw,38px);line-height:1.12;margin:0;max-width:30ch;text-wrap:balance}
+#copilot h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.6vw,38px);line-height:1.12;margin:0;max-width:none;text-wrap:wrap}
 #copilot .lede{color:var(--ink2);margin:0;max-width:75ch}
 #copilot .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
   padding-block:10px;border-bottom:1px solid var(--grid)}
@@ -137,20 +137,21 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 #ops{--red:#e3120b;--blue:#1768ac;--green:#257a55;--amber:#ad6b00;--ink:#181818;--muted:#6b7074;--paper:#f5f4ef;--card:#fff;--line:#deddd8;--grey:#c8ccce;--lead:#111111;--leadtrack:#333333;--leadink:#ffffff;--leadmuted:#b5b5b5;--leadbar:#d9d9d9;--leadtop:#ff4b3e}
 #ops *{box-sizing:border-box}
-#ops{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Arial,Helvetica,sans-serif}
+#ops{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body)}
 #ops .app{max-width:1600px;margin:auto;padding:20px}
 #ops .mast{border-top:8px solid var(--red);padding-top:14px;display:flex;justify-content:space-between;gap:20px;align-items:end}
-#ops .mast h1{font-size:clamp(28px,3.6vw,49px);line-height:1;margin:0;letter-spacing:-1.5px}
-#ops .mast p{font:16px Georgia,serif;color:var(--muted);margin:8px 0 0}
-#ops .live{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:850;white-space:nowrap}
+#ops .mast h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,3.6vw,46px);line-height:1.12;margin:0;text-wrap:wrap}
+#ops .mast>div:first-child{flex:1;min-width:0}
+#ops .mast p{font:16px var(--f-body);color:var(--muted);margin:8px 0 0}
+#ops .live{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:700;white-space:nowrap}
 #ops .pulse{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(37,122,85,.35);animation:pulse 1.6s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(37,122,85,0)}100%{box-shadow:0 0 0 0 rgba(37,122,85,0)}}
 #ops .kpis{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:18px 0}
 #ops .kpi{background:var(--card);border-top:4px solid var(--grey);padding:13px}
 #ops .kpi.hot{border-color:var(--red)}
-#ops .kpi b{font-size:30px;display:block;letter-spacing:-1px}
-#ops .kpi span{font-size:12px;font-weight:800}
-#ops .kpi small{display:block;color:var(--muted);font-size:10.5px;margin-top:5px}
+#ops .kpi b{font-family:var(--f-body);font-weight:700;font-size:clamp(30px,3.4vw,40px);display:block;line-height:1.05;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+#ops .kpi span{display:block;font-size:14px;font-weight:600;margin-top:4px}
+#ops .kpi small{display:block;color:var(--muted);font-size:13.5px;margin-top:4px;line-height:1.35}
 #ops .kpi.wide{background:var(--lead);grid-column:span 3;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start;border-color:var(--blue)}
 #ops .kpi.wide b{overflow-wrap:anywhere}
 #ops .kpi.wide,#ops .kpi.wide b,#ops .kpi.wide span{color:var(--leadink)}
@@ -158,36 +159,38 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 #ops .kpi.wide small,#ops .kpi.wide .rank .rh{color:var(--leadmuted)}
 #ops .kpi.wide .rank .rb i{background:var(--leadbar)}
 #ops .kpi.wide .rank .rr:first-of-type .rb i{background:var(--leadtop)}
-#ops .rank{display:grid;gap:6px;font-size:10.5px}
-#ops .rank .rh{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:850;color:var(--muted)}
+#ops .rank{display:grid;gap:8px;font-size:14px}
+#ops .rank .rh{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--muted)}
+#ops .rank .rr span{display:inline;margin:0;font-size:14px}
+#ops .rank .rr .rn{font-weight:600}
 #ops .rank .rr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center}
 #ops .rank .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#ops .rank .rv{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+#ops .rank .rv{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
 #ops .rank .rb{grid-column:1/-1;height:4px;background:var(--leadtrack)}
 #ops .rank .rb i{display:block;height:100%;background:var(--blue);transition:width .6s}
 #ops .rank .rr:first-of-type .rb i{background:var(--red)}
 #ops .toolbar{display:flex;align-items:end;gap:8px;flex-wrap:wrap;border-top:1px solid var(--ink);border-bottom:1px solid #bbb;padding:10px 0}
 #ops .filter{display:grid;gap:3px}
-#ops .filter label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:850}
-#ops .toolbar select,#ops .toolbar button{height:36px;border:1px solid #aaa;background:#fff;color:#111;padding:0 10px;font:12px inherit}
-#ops .toolbar button{cursor:pointer;font-weight:750}
+#ops .filter label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+#ops .toolbar select,#ops .toolbar button{height:36px;border:1px solid #aaa;background:#fff;color:#111;padding:0 10px;font:13px var(--f-body)}
+#ops .toolbar button{cursor:pointer;font-weight:600}
 #ops .toolbar button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 #ops .spacer{flex:1}
 #ops .layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(340px,.75fr);gap:15px;margin-top:15px}
 #ops .panel{background:var(--card);padding:15px;min-width:0}
 #ops .panelhead{display:flex;justify-content:space-between;gap:12px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:10px}
 #ops .tag{width:38px;height:5px;background:var(--red);margin-bottom:9px}
-#ops .panelhead h2,#ops .detail h2{margin:0;font-size:20px}
-#ops .panelhead p{font:12px Georgia,serif;color:var(--muted);margin:4px 0 0}
+#ops .panelhead h2,#ops .detail h2{font-family:var(--f-display);font-weight:700;margin:0;font-size:20px}
+#ops .panelhead p{font:13px var(--f-body);color:var(--muted);margin:4px 0 0}
 #ops .tablewrap{overflow:auto}
 #ops .header,#ops .run{display:grid;grid-template-columns:88px minmax(200px,1.5fr) 120px 78px 78px 82px 105px 72px;gap:10px;align-items:center;min-width:950px}
-#ops .header{padding:9px 5px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:850;border-bottom:1px solid var(--line)}
+#ops .header{padding:9px 5px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;border-bottom:1px solid var(--line)}
 #ops .run{padding:11px 5px;border-bottom:1px solid #ecebe7;font-size:11px;cursor:pointer;transition:background .22s,transform .22s}
 #ops .run:hover{background:#f0efea}
 #ops .run.selected{background:#e1edf9;box-shadow:inset 3px 0 0 var(--blue)}
 #ops .run.new{animation:slide .5s ease}
 @keyframes slide{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
-#ops .st{font-weight:850}
+#ops .st{font-weight:700}
 #ops .st.running{color:var(--blue)}
 #ops .st.waiting{color:var(--amber)}
 #ops .st.queued{color:#73777a}
@@ -206,9 +209,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 #ops .detail .rid{font:10px ui-monospace,monospace;color:var(--muted);margin:5px 0 13px}
 #ops .meta{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 #ops .meta div{border-top:1px solid var(--line);padding-top:6px}
-#ops .meta small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;font-weight:850}
+#ops .meta small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;font-weight:700}
 #ops .meta b{font-size:11px}
-#ops .steps-title{font-weight:850;font-size:11px;margin-top:15px}
+#ops .steps-title{font-weight:700;font-size:11px;margin-top:15px}
 #ops .step{display:grid;grid-template-columns:17px 1fr auto;gap:7px;padding:7px 0;border-bottom:1px dotted #d8d7d2;font-size:10.5px}
 #ops .dot{width:10px;height:10px;border-radius:50%;background:#ccc;margin-top:1px}
 #ops .dot.done{background:var(--green)}
@@ -242,7 +245,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media(prefers-reduced-motion:reduce){#ops *{animation:none!important;transition:none!important}}
 
 /* Tab bar: shared shell for both dashboards, built from the Copilot monitor's tokens */
-.tabs{max-width:1180px;margin:0 auto;padding-top:18px;display:flex;gap:4px;align-items:flex-end;border-bottom:1px solid var(--grid);overflow-x:auto}
+.tabs{max-width:1180px;margin:0 auto;padding-top:18px;display:flex;gap:4px;align-items:flex-end;border-bottom:1px solid var(--grid);flex-wrap:wrap;overflow:visible}
 body[data-tab="agent-ops"] .tabs{max-width:1560px}
 .tabs .brandmark{font-family:var(--f-body);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-right:14px;padding-bottom:11px;white-space:nowrap}
 .tabs a{font-family:var(--f-body);font-size:15px;font-weight:600;color:var(--ink2);text-decoration:none;padding:8px 14px 9px;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;align-items:center;gap:8px}
@@ -267,7 +270,7 @@ body[data-tab="agent-ops"] .tabs{max-width:1560px}
 <div class="wrap">
   <header class="top">
     <div class="eyebrow">AI Copilot monitoring · Management view</div>
-    <h1>Four in five staff now use Copilot, and it returns about <span id="hRoi">RM1.56</span> for every ringgit spent</h1>
+    <h1>Four in five staff now use Copilot,<br>and it returns about <span id="hRoi">RM1.56</span> for every ringgit spent</h1>
     <p class="lede">CGC, 580 Copilot-enabled employees and 200 premium licences across 11 divisions and 93 departments. Monthly data Jan–Oct 2026; latest month is the 30 days to 27 Oct 2026. All figures are synthetic demo data.</p>
   </header>
 
